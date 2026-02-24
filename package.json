@@ -1,7 +1,6 @@
 {
   "name": "crux-bomber-backend",
   "version": "1.0.0",
-  "description": "Backend for Crux Bomber",
   "main": "server.js",
   "dependencies": {
     "express": "^4.18.2",

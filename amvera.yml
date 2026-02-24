@@ -6,5 +6,3 @@ build:
     - npm install
 run:
   main: server.js
-  persistence:
-    - /data

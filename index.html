@@ -72,9 +72,10 @@
             <div class="code-selector" id="codeSelector">
                 <span id="selectedCode">🇷🇺 +7</span>
                 <div class="code-dropdown" id="codeDropdown">
-                    <div class="code-item" data-code="+7">🇷🇺 +7</div>
-                    <div class="code-item" data-code="+380">🇺🇦 +380</div>
-                    <div class="code-item" data-code="+375">🇧🇾 +375</div>
+                    <div class="code-item" data-code="+7">🇷🇺 +7 (Россия)</div>
+                    <div class="code-item" data-code="+380">🇺🇦 +380 (Украина)</div>
+                    <div class="code-item" data-code="+375">🇧🇾 +375 (Беларусь)</div>
+                    <div class="code-item" data-code="+7">🇰🇿 +7 (Казахстан)</div>
                 </div>
             </div>
             <input class="phone-number-input" type="text" id="localNumber" placeholder="912 345 67 89" inputmode="numeric">
@@ -98,8 +99,8 @@
     <div class="settings-content">
         <div class="close-settings" id="closeSettings">✕</div>
         <div class="title" style="font-size: 1.1rem; margin-bottom: 20px;">CRUX SETTINGS</div>
-        <div id="statusIndicator" style="font-size: 0.7rem; margin-bottom: 10px; color: #8a8aff;">Статус: Проверка...</div>
-        <button class="attack-btn" id="reloadServices" style="width:100%;">ОБНОВИТЬ JSON</button>
+        <div id="statusIndicator" style="font-size: 0.7rem; margin-bottom: 10px; color: #8a8aff;">Статус: Server Mode</div>
+        <button class="attack-btn" id="reloadServices" style="width:100%;">ПРОВЕРИТЬ СЕРВЕР</button>
     </div>
 </div>
 
@@ -113,9 +114,8 @@
 (function() {
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
-    let bgParticles = [], explosionParticles = [], loadedServices = [], isAttacking = false;
+    let bgParticles = [], explosionParticles = [], isAttacking = false;
     
-    // ТВОЙ БЭКЕНД НА AMVERA
     const BACKEND_API = "https://amvera-nofloki-run-b0mb3r.amvera.io/attack";
 
     function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
@@ -143,14 +143,11 @@
     }
     animate();
 
-    async function loadServices() {
-        const status = document.getElementById('statusIndicator');
+    async function checkServer() {
         const counter = document.getElementById('servicesCounter');
-        status.innerText = "Статус: Подключено (Server Mode)";
-        status.style.color = "#8aff8a";
-        counter.innerText = "∞";
+        counter.innerText = "API";
     }
-    loadServices();
+    checkServer();
 
     async function startAttack(phone) {
         const reps = parseInt(document.getElementById('repeat').value) || 1;
@@ -158,29 +155,32 @@
         const statusTxt = document.getElementById('statusTxt');
         isAttacking = true;
         
-        statusTxt.innerText = "СВЯЗЬ С СЕРВЕРОМ...";
-        progress.style.width = "50%";
+        statusTxt.innerText = "ПОДКЛЮЧЕНИЕ...";
+        progress.style.width = "30%";
 
         try {
-            await fetch(BACKEND_API, {
+            const res = await fetch(BACKEND_API, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone: phone, repeats: reps })
             });
             
-            progress.style.width = "100%";
-            statusTxt.innerText = "АТАКА ЗАПУЩЕНА!";
+            if(res.ok) {
+                progress.style.width = "100%";
+                statusTxt.innerText = "АТАКА В ПРОЦЕССЕ";
+            } else { throw new Error(); }
         } catch (e) {
             statusTxt.innerText = "ОШИБКА СЕРВЕРА";
             progress.style.backgroundColor = "#ff4444";
         }
 
         setTimeout(() => { 
+            if(!isAttacking) return;
             document.getElementById('loadingOverlay').classList.remove('show'); 
             progress.style.width="0%"; 
             progress.style.backgroundColor = "var(--accent)";
             isAttacking = false;
-        }, 2000);
+        }, 3000);
     }
 
     document.getElementById('go').onclick = () => {
@@ -205,14 +205,19 @@
 
     document.getElementById('openSettings').onclick = () => document.getElementById('settingsModal').classList.add('active');
     document.getElementById('closeSettings').onclick = () => document.getElementById('settingsModal').classList.remove('active');
-    document.getElementById('reloadServices').onclick = () => loadServices();
+    document.getElementById('reloadServices').onclick = () => checkServer();
     document.getElementById('stopAttack').onclick = () => {
         isAttacking = false;
         document.getElementById('loadingOverlay').classList.remove('show');
     };
-    document.getElementById('codeSelector').onclick = (e) => { e.stopPropagation(); document.getElementById('codeSelector').classList.toggle('active'); };
+    
+    document.getElementById('codeSelector').onclick = (e) => { 
+        e.stopPropagation(); 
+        document.getElementById('codeSelector').classList.toggle('active'); 
+    };
+    
     document.querySelectorAll('.code-item').forEach(i => i.onclick = () => {
-        document.getElementById('selectedCode').innerText = i.innerText;
+        document.getElementById('selectedCode').innerText = i.innerText.split(' ')[0] + ' ' + i.dataset.code;
         document.getElementById('codeSelector').classList.remove('active');
     });
 })();

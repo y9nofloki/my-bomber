@@ -2,8 +2,9 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=yes">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=yes,viewport-fit=cover">
     <title>Bomber · луна (СНГ) — crux edition</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --accent: #b0b0ff; 
@@ -15,6 +16,8 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent !important;
+            /* Убираем тормоза при кликах */
+            touch-action: manipulation;
         }
 
         @keyframes entry-fade {
@@ -22,7 +25,10 @@
             100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
 
-        .entry-anim { animation: entry-fade 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .entry-anim { 
+            animation: entry-fade 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            will-change: transform, opacity;
+        }
 
         body {
             background: var(--bg-glow);
@@ -36,13 +42,25 @@
             position: relative;
             user-select: none;
             overflow: hidden;
+            /* Плавный рендеринг */
+            -webkit-font-smoothing: antialiased;
         }
 
         #bg-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; 
+            pointer-events: none;
+            will-change: transform;
+            transform: translateZ(0);
         }
 
-        .card { width: 100%; max-width: 320px; text-align: center; position: relative; z-index: 10; }
+        .card { 
+            width: 100%; 
+            max-width: 320px; 
+            text-align: center; 
+            position: relative; 
+            z-index: 10;
+            transform: translateZ(0); /* Ускорение через GPU */
+        }
 
         .header { 
             display: flex; 
@@ -124,16 +142,18 @@
             width: 210px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--accent);
             border-radius: 100px; color: #fff; padding: 12px; cursor: pointer; font-weight: 700; text-transform: uppercase;
             letter-spacing: 2px; transition: 0.2s; margin-top: 0.5rem; backdrop-filter: blur(2px);
+            transform: translateZ(0);
         }
         .attack-btn:active { transform: scale(0.96); }
 
-        .settings-trigger { position: fixed; bottom: 20px; right: 20px; font-size: 1.5rem; color: var(--accent); cursor: pointer; z-index: 100; opacity: 0.5; }
+        .settings-trigger { position: fixed; bottom: 20px; right: 20px; font-size: 1.5rem; color: var(--accent); cursor: pointer; z-index: 100; opacity: 0.5; padding: 5px; }
         
         .settings-modal { position: fixed; inset: 0; background: rgba(5, 5, 15, 0.5); backdrop-filter: blur(20px); display: none; align-items: center; justify-content: center; z-index: 3000; }
         .settings-modal.active { display: flex; }
         .settings-content { 
             background: rgba(20, 20, 35, 0.85); border: 1px solid var(--accent); border-radius: 28px; 
             padding: 2.5rem 1.5rem 1.5rem; width: 330px; position: relative; text-align: center; 
+            transform: translateZ(0);
         }
         
         .close-settings { position: absolute; top: 15px; right: 20px; font-size: 1.4rem; color: var(--accent); cursor: pointer; }
@@ -155,10 +175,11 @@
         .loading-overlay {
             position: fixed; inset: 0; background: rgba(10, 10, 20, 0.9);
             display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5000;
+            transform: translateZ(0);
         }
         .loading-overlay.show { display: flex; }
         .funny-progress-bg { width: 220px; height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-top: 15px; overflow: hidden; }
-        .funny-progress-fill { height: 100%; width: 0%; background: var(--accent); transition: 0.3s ease; }
+        .funny-progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.3s ease; }
     </style>
 </head>
 <body>
@@ -238,15 +259,22 @@
 
 <script>
     (function() {
-        // ПУСТОЙ МАССИВ - ССЫЛКИ УДАЛЕНЫ
-        const localServicesData = [];
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
 
+        const localServicesData = [];
         const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
+        // Оптимизация контекста: отключаем альфа-канал для скорости
+        const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
         let bgParticles = [], explosionParticles = [], loadedServices = [], isAttacking = false;
 
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize); resize();
+        function resize() { 
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight; 
+        }
+        window.addEventListener('resize', resize, { passive: true }); 
+        resize();
 
         class Particle {
             constructor(x, y, isExplosion = false) { 
@@ -257,18 +285,45 @@
                 this.vy = isExplosion ? (Math.random() - 0.5) * 6 : (Math.random() - 0.5) * 0.4;
                 this.alpha = 1;
             }
-            update() { this.x += this.vx; this.y += this.vy; if (this.isExplosion) this.alpha -= 0.02; }
-            draw() { ctx.fillStyle = "#b0b0ff"; ctx.globalAlpha = this.isExplosion ? this.alpha : 0.4; ctx.beginPath(); ctx.arc(this.x, this.y, this.isExplosion ? 2 : 1.2, 0, Math.PI * 2); ctx.fill(); }
+            update() { 
+                this.x += this.vx; 
+                this.y += this.vy; 
+                if (this.isExplosion) this.alpha -= 0.025; 
+            }
+            draw() { 
+                ctx.fillStyle = "#b0b0ff"; 
+                ctx.globalAlpha = this.isExplosion ? Math.max(0, this.alpha) : 0.4; 
+                ctx.beginPath(); 
+                ctx.arc(this.x, this.y, this.isExplosion ? 2 : 1.2, 0, Math.PI * 2); 
+                ctx.fill(); 
+            }
         }
 
-        for(let i=0; i<70; i++) bgParticles.push(new Particle());
+        // Уменьшаем количество фоновых частиц до 50 для стабильного FPS на телефонах
+        for(let i=0; i<50; i++) bgParticles.push(new Particle());
+
         function animate() { 
-            ctx.clearRect(0, 0, canvas.width, canvas.height); 
-            bgParticles.forEach(p => { p.update(); if(p.x<0||p.x>canvas.width) p.vx*=-1; if(p.y<0||p.y>canvas.height) p.vy*=-1; p.draw(); }); 
-            explosionParticles.forEach((p, i) => { p.update(); p.draw(); if(p.alpha <= 0) explosionParticles.splice(i, 1); });
+            // Заливка цветом фона вместо clearRect (быстрее на GPU)
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = "#0a0c14";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            bgParticles.forEach(p => { 
+                p.update(); 
+                if(p.x < 0 || p.x > canvas.width) p.vx *= -1; 
+                if(p.y < 0 || p.y > canvas.height) p.vy *= -1; 
+                p.draw(); 
+            }); 
+
+            explosionParticles.forEach((p, i) => { 
+                p.update(); 
+                p.draw(); 
+                if(p.alpha <= 0) explosionParticles.splice(i, 1); 
+            });
+            
             requestAnimationFrame(animate); 
         }
-        animate();
+        requestAnimationFrame(animate);
 
         function genFake() {
             const r = (l) => Math.random().toString(36).substring(2, 2+l);
@@ -321,6 +376,7 @@
                 finalBody = typeof processedBody === 'object' ? JSON.stringify(processedBody) : processedBody;
             }
             try {
+                // Используем fetch в режиме no-cors если нужно, но по дефолту оставляем как есть
                 await fetch(finalUrl, {
                     method: req.method || 'POST',
                     headers: { 'Content-Type': 'application/json', ...finalHeaders },
@@ -341,7 +397,8 @@
             });
 
             if (totalRequests === 0) {
-                alert("Список сервисов пуст! Добавьте их в настройках.");
+                tg.HapticFeedback.notificationOccurred('error');
+                alert("Список сервисов пуст!");
                 document.getElementById('loadingOverlay').classList.remove('show');
                 isAttacking = false;
                 return;
@@ -360,17 +417,18 @@
                             await executeRequest(subReq, phone, fakes);
                             done++;
                             updateUI(done, totalToRun);
-                            await new Promise(res => setTimeout(res, 50));
+                            await new Promise(res => setTimeout(res, 30));
                         }
                     } else {
                         await executeRequest(s, phone, fakes);
                         done++;
                         updateUI(done, totalToRun);
-                        await new Promise(res => setTimeout(res, 50));
+                        await new Promise(res => setTimeout(res, 30));
                     }
                 }
             }
             status.innerText = "ЗАВЕРШЕНО";
+            tg.HapticFeedback.notificationOccurred('success');
             setTimeout(() => { document.getElementById('loadingOverlay').classList.remove('show'); progress.style.width="0%"; }, 1500);
             isAttacking = false;
         }
@@ -383,10 +441,12 @@
         document.getElementById('go').onclick = () => {
             const num = document.getElementById('localNumber').value.replace(/\D/g, '');
             if (num.length < 7) { 
+                tg.HapticFeedback.notificationOccurred('warning');
                 document.getElementById('phoneBox').classList.add('invalid'); 
                 setTimeout(()=>document.getElementById('phoneBox').classList.remove('invalid'), 500); 
                 return; 
             }
+            tg.HapticFeedback.impactOccurred('heavy');
             document.getElementById('loadingOverlay').classList.add('show');
             const code = document.getElementById('selectedCode').innerText.split(' ').pop().replace('+', '');
             startAttack(code + num);
@@ -394,26 +454,43 @@
 
         const bomb = document.getElementById('bombLogo');
         bomb.onclick = () => {
+            tg.HapticFeedback.selectionChanged();
             bomb.classList.add('active-anim');
             setTimeout(() => bomb.classList.remove('active-anim'), 700);
             const rect = bomb.getBoundingClientRect();
-            for(let i=0; i<20; i++) explosionParticles.push(new Particle(rect.left + rect.width/2, rect.top + rect.height/2, true));
+            for(let i=0; i<15; i++) explosionParticles.push(new Particle(rect.left + rect.width/2, rect.top + rect.height/2, true));
         };
 
-        document.getElementById('stopAttack').onclick = () => isAttacking = false;
+        document.getElementById('stopAttack').onclick = () => {
+            tg.HapticFeedback.impactOccurred('medium');
+            isAttacking = false;
+        };
+
         document.getElementById('openSettings').onclick = () => document.getElementById('settingsModal').classList.add('active');
         document.getElementById('closeSettings').onclick = () => document.getElementById('settingsModal').classList.remove('active');
+        
         document.getElementById('toggleExample').onclick = () => {
             const ex = document.getElementById('jsonExample');
             ex.style.display = ex.style.display === 'block' ? 'none' : 'block';
         };
+
         document.getElementById('saveSettings').onclick = () => {
             localStorage.setItem('crux_url', document.getElementById('repoUrl').value);
             loadServices();
             document.getElementById('settingsModal').classList.remove('active');
         };
-        document.getElementById('codeSelector').onclick = (e) => { e.stopPropagation(); document.getElementById('codeSelector').classList.toggle('active'); };
-        document.querySelectorAll('.code-item').forEach(i => i.onclick = () => document.getElementById('selectedCode').innerText = i.innerText.split(' ')[0] + ' ' + i.dataset.code);
+
+        document.getElementById('codeSelector').onclick = (e) => { 
+            e.stopPropagation(); 
+            document.getElementById('codeSelector').classList.toggle('active'); 
+        };
+
+        document.querySelectorAll('.code-item').forEach(i => {
+            i.onclick = () => {
+                document.getElementById('selectedCode').innerText = i.innerText.split(' ')[0] + ' ' + i.dataset.code;
+            }
+        });
+
         window.onclick = () => document.getElementById('codeSelector').classList.remove('active');
     })();
 </script>

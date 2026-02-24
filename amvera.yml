@@ -1,9 +1,10 @@
 meta:
   environment: node
-  toolchain:
-    name: npm
-    version: 20
+  tool: npm
 build:
-  install: npm install
+  commands:
+    - npm install
 run:
-  script: node server.js
+  main: server.js
+  persistence:
+    - /data

